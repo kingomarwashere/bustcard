@@ -4,7 +4,7 @@ export function dashboardPage() {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BustCard — My Account</title>
+  <title>1800 Radical — My Account</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -47,11 +47,11 @@ export function dashboardPage() {
 </head>
 <body>
 <div class="container">
-  <div class="logo">Bust<span>Card</span></div>
+  <div class="logo"><span>1800</span> Radical</div>
 
   <!-- REGISTER -->
   <div id="register-section" class="show">
-    <h1>Set up your BustCard</h1>
+    <h1>Set up your 1800 Radical</h1>
 
     <div class="card">
       <div class="card-label">Your details</div>
@@ -75,18 +75,18 @@ export function dashboardPage() {
       <button class="add-contact-btn" id="add-contact">+ Add another contact</button>
     </div>
 
-    <button class="btn" id="register-btn">Create my BustCard</button>
+    <button class="btn" id="register-btn">Create my 1800 Radical</button>
     <div class="msg" id="reg-msg"></div>
   </div>
 
   <!-- DASHBOARD -->
   <div id="dashboard-section">
-    <h1>Your BustCard</h1>
+    <h1>Your 1800 Radical</h1>
 
     <div class="card">
       <div class="card-label">Your member number — memorise this</div>
       <div class="member-num" id="dash-member-num">——</div>
-      <div class="tip">Call <strong style="color:white;">1800 BUSTED</strong>, enter this number, then your PIN.</div>
+      <div class="tip">Call <strong style="color:white;">1800 RADICAL</strong>, enter this number, then your PIN.</div>
     </div>
 
     <div class="card">
@@ -157,7 +157,7 @@ export function dashboardPage() {
       msg.textContent = 'Network error. Try again.';
       msg.className = 'msg err';
     } finally {
-      btn.textContent = 'Create my BustCard';
+      btn.textContent = 'Create my 1800 Radical';
       btn.disabled = false;
     }
   });

@@ -4,7 +4,7 @@ export function landingPage() {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BustCard — 1800 BUSTED</title>
+  <title>1800 Radical — If you get arrested, who finds out?</title>
   <meta name="description" content="If you get arrested, who finds out? One call. No internet. No memory required. Your people get texted in seconds." />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -526,8 +526,8 @@ export function landingPage() {
 
 <!-- NAV -->
 <nav>
-  <a href="/" class="nav-logo">Bust<span>Card</span></a>
-  <a href="#signup" class="nav-cta">Get My BustCard</a>
+  <a href="/" class="nav-logo"><span>1800</span> Radical</a>
+  <a href="#signup" class="nav-cta">Get My Radical Number</a>
 </nav>
 
 <!-- HERO -->
@@ -536,16 +536,16 @@ export function landingPage() {
   <h1>If you get<br>arrested,<br>who finds <em>out?</em></h1>
   <p class="hero-sub">
     <strong>One call. No internet. No memory required.</strong>
-    BustCard texts your people the moment you dial in — before any interview, from any phone.
+    1800 Radical texts your people the moment you dial in — before any interview, from any phone.
   </p>
   <div class="number-badge">
     <div>
       <div class="label">Call this number</div>
-      <div class="number"><span>1800</span> BUSTED</div>
+      <div class="number"><span>1800</span> RADICAL</div>
     </div>
   </div>
   <div class="hero-ctas">
-    <a href="#signup" class="btn-primary">Set up your BustCard</a>
+    <a href="#signup" class="btn-primary">Get your 1800 Radical number</a>
     <a href="#how" class="btn-ghost">How it works</a>
   </div>
 </div>
@@ -564,13 +564,13 @@ export function landingPage() {
     </div>
     <div class="step">
       <div class="step-num">02</div>
-      <h3>Call 1800 BUSTED</h3>
-      <p>If you're arrested, ask to make your phone call. Dial 1800 BUSTED from the station phone — it's free and police must let you make the call.</p>
+      <h3>Call 1800 RADICAL</h3>
+      <p>If you're arrested, ask to make your phone call. Dial 1800 RADICAL from the station phone — it's free and police must let you make the call.</p>
     </div>
     <div class="step">
       <div class="step-num">03</div>
       <h3>Enter your PIN</h3>
-      <p>Key in your member number, then your PIN. Everyone on your list gets an SMS within seconds. You don't need to say a word.</p>
+      <p>Key in your 6-digit member number, then your PIN. Everyone on your list gets an SMS within seconds. You don't need to say a word.</p>
     </div>
   </div>
 
@@ -592,7 +592,7 @@ export function landingPage() {
 
   <div class="callout">
     <p>
-      Activists have been writing a lawyer's number on their forearm in sharpie before a direct action for decades. That piece of paper they hand out at rallies — with the legal support line, the bail fund number — that's a <strong>bust card</strong>. We built the digital version so it works even when your phone is gone.
+      Activists have been writing a lawyer's number on their forearm in sharpie before a direct action for decades. That piece of paper they hand out at rallies — with the legal support line, the bail fund number — that's the original bust card. <strong>1800 Radical</strong> is the digital version, built so it works even when your phone is gone and your memory is shot.
     </p>
   </div>
 
@@ -610,7 +610,7 @@ export function landingPage() {
     <div class="for-who-card">
       <div class="icon">⚖️</div>
       <h3>Criminal lawyers</h3>
-      <p>Give your clients a BustCard as part of onboarding. Your after-hours line gets the first notification, automatically.</p>
+      <p>Give your clients a 1800 Radical as part of onboarding. Your after-hours line gets the first notification, automatically.</p>
     </div>
     <div class="for-who-card">
       <div class="icon">🏠</div>
@@ -639,14 +639,14 @@ export function landingPage() {
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="#e53e3e"/><path d="M4.5 8L7 10.5L11.5 5.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span>No smartphone needed</span>
       </div>
-      <p>Works from any landline. Police can't unlock your phone anyway — BustCard doesn't need it.</p>
+      <p>Works from any landline. Police can't unlock your phone anyway — 1800 Radical doesn't need it.</p>
     </div>
     <div class="why-item">
       <div class="check">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="#e53e3e"/><path d="M4.5 8L7 10.5L11.5 5.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span>Works before interview</span>
       </div>
-      <p>You have the right to a call before police questioning. That's exactly when BustCard fires.</p>
+      <p>You have the right to a call before police questioning. That's exactly when 1800 Radical fires.</p>
     </div>
     <div class="why-item">
       <div class="check">
@@ -695,7 +695,7 @@ export function landingPage() {
     </div>
     <div class="pricing-card featured">
       <div class="tag">Most popular</div>
-      <h3>Full BustCard</h3>
+      <h3>Full Plan</h3>
       <div class="price">$4.99<sub>/mo</sub></div>
       <div class="price-note">Or $39/year — save $21</div>
       <ul class="pricing-features">
@@ -705,7 +705,7 @@ export function landingPage() {
         <li class="active">Lawyer dial-out (auto-calls your lawyer's number)</li>
         <li class="active">Protest-day group mode</li>
       </ul>
-      <a href="#signup" class="btn-primary" style="text-align:center;">Get your BustCard</a>
+      <a href="#signup" class="btn-primary" style="text-align:center;">Get your 1800 Radical</a>
     </div>
   </div>
 </section>
@@ -718,8 +718,8 @@ export function landingPage() {
   <h2>Common questions.</h2>
   <div class="faq-list">
     <div class="faq-item">
-      <div class="faq-q">Can police refuse to let me call 1800 BUSTED?</div>
-      <div class="faq-a">Under NSW law, you have the right to contact a person to notify them of your arrest. In practice, custody managers have wide discretion about which numbers they'll dial. An 1800 automated service is a grey area — some officers will dial it, some may insist you call a person directly. If you encounter resistance, ask to speak to a Legal Aid or LawAccess duty lawyer first, and let them contact your people. For planned actions, carry the BustCard number <em>and</em> a backup human number.</div>
+      <div class="faq-q">Can police refuse to let me call 1800 RADICAL?</div>
+      <div class="faq-a">Under NSW law, you have the right to contact a person to notify them of your arrest. In practice, custody managers have wide discretion about which numbers they'll dial. An 1800 automated service is a grey area — some officers will dial it, some may insist you call a person directly. If you encounter resistance, ask to speak to a Legal Aid or LawAccess duty lawyer first, and let them contact your people. For planned actions, carry the 1800 Radical number <em>and</em> a backup human number.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">What exactly does the SMS say?</div>
@@ -727,7 +727,7 @@ export function landingPage() {
     </div>
     <div class="faq-item">
       <div class="faq-q">Does this work if I'm sent to prison or remand?</div>
-      <div class="faq-a">BustCard is designed for the police station stage — the critical first few hours after arrest. Correctional centres run a separate Offender Telephone System (OTS) that only allows pre-approved numbers and blocks third-party services. BustCard doesn't work inside prison — but that's not when you need it. The notification happens at the station, before anything else.</div>
+      <div class="faq-a">1800 Radical is designed for the police station stage — the critical first few hours after arrest. Correctional centres run a separate Offender Telephone System (OTS) that only allows pre-approved numbers and blocks third-party services. 1800 Radical doesn't work inside prison — but that's not when you need it. The notification happens at the station, before anything else.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">Do my contacts need to sign up for anything?</div>
@@ -739,7 +739,7 @@ export function landingPage() {
     </div>
     <div class="faq-item">
       <div class="faq-q">Is this legal?</div>
-      <div class="faq-a">Yes. BustCard is a notification relay service. It sends an SMS on your behalf, nothing more. We don't provide legal advice and we're not a legal service. The SMS includes publicly available legal resource numbers — we're just making sure your people have them.</div>
+      <div class="faq-a">Yes. 1800 Radical is a notification relay service. It sends an SMS on your behalf, nothing more. We don't provide legal advice and we're not a legal service. The SMS includes publicly available legal resource numbers — we're just making sure your people have them.</div>
     </div>
   </div>
 </section>
@@ -749,7 +749,7 @@ export function landingPage() {
 <!-- SIGNUP -->
 <section id="signup">
   <div class="form-section">
-    <h2>Get your BustCard</h2>
+    <h2>Get your 1800 Radical</h2>
     <p>We're launching soon. Drop your email and we'll let you know when you can set up your contacts and member number.</p>
     <form id="waitlist-form">
       <div class="form-row">
@@ -764,7 +764,7 @@ export function landingPage() {
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-logo">Bust<span>Card</span></div>
+  <div class="footer-logo"><span>1800</span> Radical</div>
   <ul class="footer-links">
     <li><a href="#how">How it works</a></li>
     <li><a href="#who">Who it's for</a></li>
@@ -772,7 +772,7 @@ export function landingPage() {
     <li><a href="#faq">FAQ</a></li>
   </ul>
   <div class="footer-disclaimer">
-    BustCard is a notification service, not a legal service. Information on this site is general in nature and does not constitute legal advice. For legal help: LawAccess NSW 1300 888 529 · Aboriginal Legal Service 1800 765 767. &copy; ${new Date().getFullYear()} BustCard.
+    1800 Radical is a notification service, not a legal service. Information on this site is general in nature and does not constitute legal advice. For legal help: LawAccess NSW 1300 888 529 · Aboriginal Legal Service 1800 765 767. &copy; ${new Date().getFullYear()} 1800 Radical.
   </div>
 </footer>
 

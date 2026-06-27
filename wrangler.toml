@@ -14,7 +14,6 @@ database_id = "009c6e3d-f338-4fa3-b3f3-a0688a181314"
 [vars]
 ENVIRONMENT = "production"
 
-# Domain route — add once DNS is pointed
-# [[routes]]
-# pattern = "bustcard.theradicalparty.com/*"
-# zone_name = "theradicalparty.com"
+[[routes]]
+pattern = "busted.theradicalparty.com/*"
+zone_name = "theradicalparty.com"

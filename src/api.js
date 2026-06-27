@@ -58,7 +58,7 @@ export async function handleAPI(request, env, corsHeaders) {
     }
   }
 
-  // POST /api/ivr/trigger — Twilio webhook when someone calls 1800 BUSTED and enters PIN
+  // POST /api/ivr/trigger — Twilio webhook when someone calls 1800 RADICAL and enters PIN
   // Twilio sends: Called, Caller, Digits (member_number then PIN via IVR gather)
   if (path === '/api/ivr/trigger' && request.method === 'POST') {
     const body = await request.text();
@@ -88,7 +88,7 @@ export async function handleAPI(request, env, corsHeaders) {
     ).bind(user.id).all();
 
     if (!contacts.results?.length) {
-      return twiml('<Say voice="alice">No contacts found on your account. Please set them up at bustcard dot com dot au.</Say>');
+      return twiml('<Say voice="alice">No contacts found on your account. Please set them up at busted dot the radical party dot com.</Say>');
     }
 
     const now = new Date().toLocaleString('en-AU', { timeZone: 'Australia/Sydney' });
@@ -115,7 +115,7 @@ export async function handleAPI(request, env, corsHeaders) {
   if (path === '/api/ivr/gather' && request.method === 'POST') {
     return twiml(`
       <Gather numDigits="6" action="/api/ivr/pin" method="POST" timeout="10">
-        <Say voice="alice">Welcome to BustCard. Enter your 6 digit member number.</Say>
+        <Say voice="alice">Welcome to 1800 Radical. Enter your 6 digit member number.</Say>
       </Gather>
       <Say voice="alice">We didn't receive your member number. Please call back.</Say>
     `);
