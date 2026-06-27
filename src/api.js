@@ -18,7 +18,6 @@ export async function handleAPI(request, env, corsHeaders) {
     if (!/^\+?[\d]{10,12}$/.test(cleanPhone.replace('+', '')))
       return json({ error: 'Enter a valid Australian mobile number.' }, 400);
 
-    // DOB must be DDMMYY (6 digits)
     if (!/^\d{6}$/.test(dob))
       return json({ error: 'Date of birth must be 6 digits — DDMMYY.' }, 400);
 
@@ -55,39 +54,37 @@ export async function handleAPI(request, env, corsHeaders) {
     }
   }
 
-  // POST /api/ivr/gather — entry point, collect mobile number
+  // --- IVR FLOW ---
+  // Step 1: Entry — collect mobile number
   if (path === '/api/ivr/gather' && request.method === 'POST') {
     return twiml(`
-      <Gather numDigits="10" action="/api/ivr/dob" method="POST" timeout="12">
-        <Say voice="alice">Welcome to 1800 Radical. Enter your 10 digit mobile number, starting with zero.</Say>
+      <Gather input="dtmf" numDigits="10" action="/api/ivr/dob" method="POST" timeout="12">
+        <Say voice="alice" language="en-AU">Welcome to 1800 Radical. Enter your 10 digit mobile number, starting with zero.</Say>
       </Gather>
-      <Say voice="alice">We didn't receive your mobile number. Please call back.</Say>
+      <Say voice="alice" language="en-AU">We didn't receive your mobile number. Please call back.</Say>
     `);
   }
 
-  // POST /api/ivr/dob — collect date of birth
+  // Step 2: Collect date of birth
   if (path === '/api/ivr/dob' && request.method === 'POST') {
-    const body = await request.text();
-    const params = new URLSearchParams(body);
+    const params = new URLSearchParams(await request.text());
     const mobile = params.get('Digits');
     return twiml(`
-      <Gather numDigits="6" action="/api/ivr/trigger?mobile=${mobile}" method="POST" timeout="12">
-        <Say voice="alice">Now enter your date of birth as 6 digits — day, month, year. For example, the 5th of March 1990 would be 0 5 0 3 9 0.</Say>
+      <Gather input="dtmf" numDigits="6" action="/api/ivr/verify?mobile=${encodeURIComponent(mobile)}" method="POST" timeout="12">
+        <Say voice="alice" language="en-AU">Now enter your date of birth as 6 digits — day, month, year. For example, the 5th of March 1990 would be 0 5 0 3 9 0.</Say>
       </Gather>
-      <Say voice="alice">We didn't receive your date of birth. Please call back.</Say>
+      <Say voice="alice" language="en-AU">We didn't receive your date of birth. Please call back.</Say>
     `);
   }
 
-  // POST /api/ivr/trigger — verify and fire SMS
-  if (path === '/api/ivr/trigger' && request.method === 'POST') {
-    const body = await request.text();
-    const params = new URLSearchParams(body);
+  // Step 3: Verify identity, then ask for location
+  if (path === '/api/ivr/verify' && request.method === 'POST') {
+    const params = new URLSearchParams(await request.text());
     const dob = params.get('Digits');
     const mobileRaw = url.searchParams.get('mobile');
 
-    if (!mobileRaw || !dob) {
-      return twiml('<Say voice="alice">Sorry, we could not verify your details. Please call back.</Say>');
-    }
+    if (!mobileRaw || !dob)
+      return twiml('<Say voice="alice" language="en-AU">Sorry, we could not verify your details. Please call back.</Say>');
 
     const mobile = mobileRaw.replace(/^0/, '+61');
 
@@ -95,25 +92,77 @@ export async function handleAPI(request, env, corsHeaders) {
       'SELECT * FROM users WHERE phone = ? AND active = 1'
     ).bind(mobile).first();
 
-    if (!user) {
-      return twiml('<Say voice="alice">Mobile number not found. Make sure you registered at busted dot the radical party dot com.</Say>');
-    }
+    if (!user)
+      return twiml('<Say voice="alice" language="en-AU">Mobile number not found. Please register at busted dot the radical party dot com.</Say>');
 
     const dobValid = await verifyHash(dob, user.dob_hash);
-    if (!dobValid) {
-      return twiml('<Say voice="alice">Date of birth did not match. Please try again.</Say>');
-    }
+    if (!dobValid)
+      return twiml('<Say voice="alice" language="en-AU">Date of birth did not match. Please try again.</Say>');
+
+    // Verified — ask where they are being held
+    return twiml(`
+      <Gather input="speech dtmf" action="/api/ivr/location?mobile=${encodeURIComponent(mobileRaw)}" method="POST" timeout="8" speechTimeout="auto" language="en-AU">
+        <Say voice="alice" language="en-AU">Verified. Say the name of the police station or location where you are being held, then press any key.</Say>
+      </Gather>
+      <Say voice="alice" language="en-AU">No location received. We'll notify your contacts now without a location.</Say>
+      <Redirect method="POST">/api/ivr/complete?mobile=${encodeURIComponent(mobileRaw)}&loc=unknown</Redirect>
+    `);
+  }
+
+  // Step 4: Collect optional voice message, location now known
+  if (path === '/api/ivr/location' && request.method === 'POST') {
+    const params = new URLSearchParams(await request.text());
+    const location = params.get('SpeechResult') || 'unknown';
+    const mobile = url.searchParams.get('mobile');
+    const locEnc = encodeURIComponent(location);
+
+    return twiml(`
+      <Gather input="speech dtmf" action="/api/ivr/complete?mobile=${encodeURIComponent(mobile)}&loc=${locEnc}" method="POST" timeout="8" speechTimeout="auto" language="en-AU">
+        <Say voice="alice" language="en-AU">Got it. Say a short message for your contacts, then press any key. Or just press any key now to send without a message.</Say>
+      </Gather>
+      <Redirect method="POST">/api/ivr/complete?mobile=${encodeURIComponent(mobile)}&loc=${locEnc}</Redirect>
+    `);
+  }
+
+  // Step 5: Fire SMS to all contacts
+  if (path === '/api/ivr/complete' && request.method === 'POST') {
+    const params = new URLSearchParams(await request.text());
+    const voiceMsg = params.get('SpeechResult') || '';
+    const mobileRaw = url.searchParams.get('mobile');
+    const location = decodeURIComponent(url.searchParams.get('loc') || 'unknown');
+
+    const mobile = mobileRaw?.replace(/^0/, '+61');
+
+    const user = await env.DB.prepare(
+      'SELECT * FROM users WHERE phone = ? AND active = 1'
+    ).bind(mobile).first();
+
+    if (!user)
+      return twiml('<Say voice="alice" language="en-AU">Account not found. Please call back.</Say>');
 
     const contacts = await env.DB.prepare(
       'SELECT * FROM contacts WHERE user_id = ? ORDER BY sort_order'
     ).bind(user.id).all();
 
-    if (!contacts.results?.length) {
-      return twiml('<Say voice="alice">No contacts on your account. Please update them at busted dot the radical party dot com.</Say>');
-    }
+    if (!contacts.results?.length)
+      return twiml('<Say voice="alice" language="en-AU">No contacts on your account. Please update them at busted dot the radical party dot com.</Say>');
 
     const now = new Date().toLocaleString('en-AU', { timeZone: 'Australia/Sydney' });
-    const smsBody = `URGENT: ${user.name} has been detained and asked you to be notified. Time: ${now} AEST. They cannot be reached. Legal help: LawAccess NSW 1300 888 529 · Aboriginal Legal Service 1800 765 767.`;
+
+    const locationLine = location && location !== 'unknown'
+      ? `Location: ${location}. `
+      : '';
+
+    const messageLine = voiceMsg
+      ? `Their message: "${voiceMsg}" `
+      : '';
+
+    const smsBody =
+      `URGENT: ${user.name} has been detained and asked you to be notified. ` +
+      `${locationLine}` +
+      `Time: ${now} AEST. ` +
+      `${messageLine}` +
+      `They cannot be reached. Legal help: contact Legal Aid in your state or call 1300 888 529 (NSW) · Aboriginal Legal Service 1800 765 767.`;
 
     let notified = 0;
     for (const contact of contacts.results) {
@@ -127,7 +176,7 @@ export async function handleAPI(request, env, corsHeaders) {
       'INSERT INTO notifications (user_id, contacts_notified, caller_number, status) VALUES (?, ?, ?, ?)'
     ).bind(user.id, notified, params.get('Caller') || null, 'sent').run();
 
-    return twiml(`<Say voice="alice">Done. We've notified ${notified} of your contacts. Stay calm and ask for a lawyer before any interview. Good luck.</Say>`);
+    return twiml(`<Say voice="alice" language="en-AU">Done. We've notified ${notified} of your contacts with your location and message. Stay calm and ask for a lawyer before any interview. Good luck.</Say>`);
   }
 
   // POST /api/waitlist
@@ -176,20 +225,21 @@ function twiml(content) {
 }
 
 async function sendSMS(env, to, body) {
-  if (!env.TWILIO_ACCOUNT_SID || !env.TWILIO_AUTH_TOKEN || !env.TWILIO_FROM_NUMBER) {
+  if (!env.TELNYX_API_KEY || !env.TELNYX_FROM_NUMBER) {
     console.log(`[SMS stub] To: ${to} | Body: ${body}`);
     return;
   }
-  const res = await fetch(
-    `https://api.twilio.com/2010-04-01/Accounts/${env.TWILIO_ACCOUNT_SID}/Messages.json`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Basic ${btoa(`${env.TWILIO_ACCOUNT_SID}:${env.TWILIO_AUTH_TOKEN}`)}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({ To: to, From: env.TWILIO_FROM_NUMBER, Body: body }),
-    }
-  );
-  if (!res.ok) throw new Error(`Twilio error: ${res.status}`);
+  const res = await fetch('https://api.telnyx.com/v2/messages', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.TELNYX_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: env.TELNYX_FROM_NUMBER,
+      to,
+      text: body,
+    }),
+  });
+  if (!res.ok) throw new Error(`Telnyx SMS error: ${res.status}`);
 }

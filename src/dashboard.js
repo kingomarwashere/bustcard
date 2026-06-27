@@ -418,14 +418,18 @@ export function dashboardPage() {
       <div class="card-label">// legal resources — included in every SMS</div>
       <div style="display:flex;flex-direction:column;gap:12px;">
         <div>
-          <div style="font-size:0.9rem;font-weight:600;">LawAccess NSW</div>
-          <div style="font-size:0.85rem;color:var(--pink);font-weight:700;">1300 888 529</div>
-          <div style="font-size:0.75rem;color:var(--muted);font-weight:400;">Free legal advice line</div>
+          <div style="font-size:0.9rem;font-weight:600;">Legal Aid — by state</div>
+          <div style="font-size:0.78rem;color:var(--pink);font-weight:700;line-height:1.8;">
+            NSW 1300 888 529 · VIC 1300 792 387<br>
+            QLD 1300 651 188 · WA 1300 650 579<br>
+            SA 1300 366 424 · NT 1800 019 343
+          </div>
+          <div style="font-size:0.72rem;color:var(--muted);font-weight:400;">Free legal advice, all states</div>
         </div>
         <div style="border-top:1px solid var(--border);padding-top:12px;">
           <div style="font-size:0.9rem;font-weight:600;">Aboriginal Legal Service</div>
           <div style="font-size:0.85rem;color:var(--pink);font-weight:700;">1800 765 767</div>
-          <div style="font-size:0.75rem;color:var(--muted);font-weight:400;">24/7 custody line</div>
+          <div style="font-size:0.75rem;color:var(--muted);font-weight:400;">24/7 custody line (NSW/ACT) — other states vary</div>
         </div>
       </div>
     </div>

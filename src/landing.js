@@ -479,7 +479,7 @@ export function landingPage() {
 
 <!-- HERO -->
 <div class="hero">
-  <div class="hero-eyebrow">// NSW custody notification system</div>
+  <div class="hero-eyebrow">// Australia-wide custody notification system</div>
   <h1>If you get arrested,<br>who finds <em>out?</em></h1>
   <p class="hero-sub">
     <strong>One call. No internet. No memory required.</strong><br>
@@ -513,17 +513,17 @@ export function landingPage() {
     </div>
     <div class="step">
       <div class="step-num">03 //</div>
-      <h3>Enter mobile + date of birth</h3>
-      <p>Key in your mobile number, then your DOB as 6 digits. Everyone on your list gets an SMS within seconds. No words needed.</p>
+      <h3>Enter mobile + DOB, then speak</h3>
+      <p>Key in your mobile and DOB. Then say where you're being held and leave a short message. Your contacts get all of it by SMS within seconds.</p>
     </div>
   </div>
 
   <div class="sms-preview">
     <div class="sms-label">// what your contacts receive</div>
     <div class="sms-bubble">
-      URGENT: Jordan Smith has been detained and asked you to be notified. Time: 11:42 PM AEST. They cannot be reached right now. Legal help: LawAccess NSW 1300 888 529 · Aboriginal Legal Service 1800 765 767.
+      URGENT: Jordan Smith has been detained and asked you to be notified. Location: Newtown Police Station. Time: 11:42 PM AEST. Their message: "I'm okay, call Pete." They cannot be reached. Legal help: contact Legal Aid in your state or call 1300 888 529 (NSW) · ALS 1800 765 767.
     </div>
-    <div class="sms-meta">// delivered instantly to all contacts on your list</div>
+    <div class="sms-meta">// location + voice message transcribed and delivered instantly to all contacts</div>
   </div>
 </section>
 </div>
@@ -569,7 +569,7 @@ export function landingPage() {
 <div class="section-wrap">
 <section>
   <div class="section-label">// why it works</div>
-  <h2>Built around how NSW custody actually works.</h2>
+  <h2>Built around how Australian custody actually works.</h2>
   <div class="why-grid">
     <div class="why-item">
       <div class="check"><div class="check-dot"></div><span>1800 = free to call</span></div>
@@ -589,7 +589,7 @@ export function landingPage() {
     </div>
     <div class="why-item">
       <div class="check"><div class="check-dot"></div><span>Legal resources in every SMS</span></div>
-      <p>Every alert includes LawAccess NSW and ALS numbers. Your contacts know who to call.</p>
+      <p>Every alert includes your location, your voice message, and Legal Aid contacts for your state. Your people know exactly what to do.</p>
     </div>
     <div class="why-item">
       <div class="check"><div class="check-dot"></div><span>Private by design</span></div>
@@ -645,15 +645,15 @@ export function landingPage() {
   <div class="faq-list">
     <div class="faq-item">
       <div class="faq-q">Can police refuse to let me call 1800 RADICAL?</div>
-      <div class="faq-a">Under NSW law you have the right to contact a person to notify them of your arrest. In practice, custody managers have discretion about which numbers they'll dial. An 1800 automated service is a grey area — some officers will dial it, others may insist you call a person directly. If you get resistance, ask for LawAccess or Legal Aid duty lawyer first and let them contact your people. For planned actions, carry 1800 RADICAL <em>and</em> a backup human number.</div>
+      <div class="faq-a">In every Australian state and territory you have the right to notify someone of your arrest and to contact a lawyer. In practice, custody managers have discretion about which numbers they'll dial. An automated service is a grey area — some officers will dial it, others may insist you call a person directly. If you get resistance, ask for Legal Aid or a duty lawyer first and let them contact your people. For planned actions, carry 1800 RADICAL <em>and</em> a backup human number. Know your state's rules: NSW, VIC, QLD, WA, SA, TAS, ACT and NT all have slightly different custody rights legislation but the core notification right exists everywhere.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">What exactly does the SMS say?</div>
-      <div class="faq-a">Your contacts receive: "[Your name] has been detained and asked you to be notified. Time: [timestamp] AEST. They cannot be reached right now. Legal help: LawAccess NSW 1300 888 529 · Aboriginal Legal Service 1800 765 767." Factual, clear, no drama.</div>
+      <div class="faq-a">Your contacts receive something like: "URGENT: [Name] has been detained and asked you to be notified. Location: [where you said you are]. Time: [timestamp] AEST. Their message: '[what you said]'. They cannot be reached. Legal help: contact Legal Aid in your state or call 1300 888 529 (NSW) · ALS 1800 765 767." The location and voice message are transcribed from what you say during the call. If you skip them, they're left out.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">Does this work if I'm sent to prison or remand?</div>
-      <div class="faq-a">1800 Radical is designed for the police station stage — the critical first few hours after arrest. Correctional centres use a separate Offender Telephone System that only allows pre-approved numbers. This doesn't work inside prison, but that's not when you need it. The notification happens at the station, before anything else.</div>
+      <div class="faq-a">1800 Radical is designed for the police station stage — the critical first few hours after arrest. Correctional centres across Australia use a separate Offender Telephone System that only allows pre-approved numbers. This doesn't work inside prison, but that's not when you need it. The notification happens at the station, before anything else.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">Do my contacts need to sign up for anything?</div>
@@ -683,7 +683,7 @@ export function landingPage() {
     <li><a href="https://theradicalparty.com">RADICAL PARTY</a></li>
   </ul>
   <div class="footer-disclaimer">
-    1800 Radical is a notification service, not a legal service. Nothing on this site constitutes legal advice. For legal help: LawAccess NSW 1300 888 529 · Aboriginal Legal Service 1800 765 767 · Legal Aid NSW 1300 888 529. &copy; ${new Date().getFullYear()} 1800 Radical — a Radical Party project.
+    1800 Radical is a notification service, not a legal service. Nothing on this site constitutes legal advice. For legal help contact Legal Aid in your state: NSW 1300 888 529 · VIC 1300 792 387 · QLD 1300 651 188 · WA 1300 650 579 · SA 1300 366 424 · NT 1800 019 343 · Aboriginal Legal Service 1800 765 767. &copy; ${new Date().getFullYear()} 1800 Radical — a Radical Party project.
   </div>
 </footer>
 </div>
