@@ -4,9 +4,8 @@ CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
-  phone TEXT,
-  member_number TEXT NOT NULL UNIQUE,
-  pin_hash TEXT NOT NULL,
+  phone TEXT NOT NULL UNIQUE,  -- mobile number, used as caller identifier
+  dob_hash TEXT NOT NULL,      -- SHA-256 of DDMMYY — second factor
   active INTEGER DEFAULT 1,
   plan TEXT DEFAULT 'free',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP

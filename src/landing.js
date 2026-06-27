@@ -504,7 +504,7 @@ export function landingPage() {
     <div class="step">
       <div class="step-num">01 //</div>
       <h3>Sign up + add contacts</h3>
-      <p>Add up to 10 people — family, friends, your lawyer. You get a 6-digit member number and a PIN. Write them somewhere physical, not just in your phone.</p>
+      <p>Add up to 10 people — family, friends, your lawyer. Register with your mobile and date of birth. Nothing new to memorise — you already know both.</p>
     </div>
     <div class="step">
       <div class="step-num">02 //</div>
@@ -513,8 +513,8 @@ export function landingPage() {
     </div>
     <div class="step">
       <div class="step-num">03 //</div>
-      <h3>Enter your PIN</h3>
-      <p>Key in your member number then your PIN. Everyone on your list gets an SMS within seconds. You don't need to say a word.</p>
+      <h3>Enter mobile + date of birth</h3>
+      <p>Key in your mobile number, then your DOB as 6 digits. Everyone on your list gets an SMS within seconds. No words needed.</p>
     </div>
   </div>
 
@@ -585,7 +585,7 @@ export function landingPage() {
     </div>
     <div class="why-item">
       <div class="check"><div class="check-dot"></div><span>Nothing to memorise</span></div>
-      <p>One number. One PIN. Write it on your wrist if you have to. That's the whole system.</p>
+      <p>Your mobile and your DOB. You already know both. There is nothing new to write down.</p>
     </div>
     <div class="why-item">
       <div class="check"><div class="check-dot"></div><span>Legal resources in every SMS</span></div>
@@ -611,7 +611,7 @@ export function landingPage() {
       <div class="price">$0</div>
       <div class="price-note">No card required</div>
       <ul class="pricing-features">
-        <li class="on">1 member number + PIN</li>
+        <li class="on">Mobile + date of birth ID</li>
         <li class="on">Up to 3 contacts notified</li>
         <li class="on">SMS alert with legal numbers</li>
         <li>Lawyer auto dial-out</li>
@@ -625,7 +625,7 @@ export function landingPage() {
       <div class="price">$4.99<sub>/mo</sub></div>
       <div class="price-note">Or $39/year — save $21</div>
       <ul class="pricing-features">
-        <li class="on">1 member number + PIN</li>
+        <li class="on">Mobile + date of birth ID</li>
         <li class="on">Up to 10 contacts notified</li>
         <li class="on">SMS alert with legal numbers</li>
         <li class="on">Lawyer auto dial-out</li>
@@ -660,8 +660,8 @@ export function landingPage() {
       <div class="faq-a">No. They just receive an SMS from an unknown number. Tell them in advance that they might get a message like this, so they know to take it seriously and not dismiss it as spam.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q">What if I forget my PIN?</div>
-      <div class="faq-a">You can reset your PIN by logging into your account online with your email. This is exactly why writing down your member number and PIN physically — not just in your phone — matters. Keep a copy at home and with someone you trust.</div>
+      <div class="faq-q">What if I forget my date of birth?</div>
+      <div class="faq-a">You won't. But if something's wrong with your account you can update your details by logging in with your email.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">Is this legal?</div>

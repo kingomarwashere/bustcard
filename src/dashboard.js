@@ -341,14 +341,14 @@ export function dashboardPage() {
           <div class="field-hint">For account recovery only. We don't spam.</div>
         </div>
         <div class="field">
-          <label>Mobile (optional)</label>
+          <label>Mobile number</label>
           <input type="tel" id="reg-phone" placeholder="04xx xxx xxx" autocomplete="tel" />
-          <div class="field-hint">Not used for notifications. Just for account security.</div>
+          <div class="field-hint">This is how you identify yourself when you call. Use the number you know by heart.</div>
         </div>
         <div class="field">
-          <label>Choose a PIN — 4 to 8 digits</label>
-          <input type="password" id="reg-pin" placeholder="••••••" maxlength="8" inputmode="numeric" />
-          <div class="field-hint">You'll enter this when you call 1800 RADICAL. Memorise it or write it somewhere physical.</div>
+          <label>Date of birth — DDMMYY</label>
+          <input type="text" id="reg-dob" placeholder="150690" maxlength="6" inputmode="numeric" />
+          <div class="field-hint">6 digits. Day, month, last 2 digits of year. E.g. 15 June 1990 → 150690. Second factor when you call in.</div>
         </div>
       </div>
       <button class="btn" id="next-btn">CONTINUE → ADD CONTACTS</button>
@@ -383,21 +383,29 @@ export function dashboardPage() {
     <div class="success-header">
       <div class="label">// account created</div>
       <h2>You're set up.</h2>
-      <p>Write your member number and PIN somewhere physical. That's the whole system.</p>
+      <p>Nothing new to memorise. You already know both pieces — your mobile and your date of birth.</p>
     </div>
 
     <div class="call-block">
       <div class="cb-label">// the number to call if arrested</div>
       <div class="cb-num"><span>1800</span> RADICAL</div>
-      <p>Free to call from any phone, including police station phones. Enter your member number then your PIN when prompted.</p>
+      <p>Free to call from any phone, including police station phones. Enter your mobile number, then your date of birth when prompted.</p>
     </div>
 
     <div class="member-block">
-      <div class="mb-label">// your member number</div>
-      <div class="mb-num" id="member-num-display">——</div>
+      <div class="mb-label">// how you identify yourself</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,0,153,0.3);margin-bottom:16px;">
+        <div style="background:var(--black);padding:20px;text-align:center;">
+          <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);margin-bottom:8px;">1. YOUR MOBILE</div>
+          <div style="font-size:1.1rem;font-weight:700;color:var(--pink);" id="member-phone-display">——</div>
+        </div>
+        <div style="background:var(--black);padding:20px;text-align:center;">
+          <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);margin-bottom:8px;">2. YOUR DATE OF BIRTH</div>
+          <div style="font-size:1.1rem;font-weight:700;color:var(--pink);">DDMMYY</div>
+        </div>
+      </div>
       <div class="mb-hint">
-        <strong>Write this down. Now.</strong><br>
-        Member number + your PIN = your contacts get texted. Keep a copy at home, give one to someone you trust.
+        You already know both. No new info to memorise — ever.
       </div>
     </div>
 
@@ -461,10 +469,12 @@ export function dashboardPage() {
     const msg = document.getElementById('step1-msg');
     const name = document.getElementById('reg-name').value.trim();
     const email = document.getElementById('reg-email').value.trim();
-    const pin = document.getElementById('reg-pin').value.trim();
+    const phone = document.getElementById('reg-phone').value.trim();
+    const dob = document.getElementById('reg-dob').value.trim();
     if (!name) { msg.textContent = 'Enter your name.'; msg.className = 'msg err'; return; }
     if (!email || !email.includes('@')) { msg.textContent = 'Enter a valid email.'; msg.className = 'msg err'; return; }
-    if (!pin || pin.length < 4 || !/^\\d+$/.test(pin)) { msg.textContent = 'PIN must be 4–8 digits.'; msg.className = 'msg err'; return; }
+    if (!phone) { msg.textContent = 'Enter your mobile number.'; msg.className = 'msg err'; return; }
+    if (!/^\\d{6}$/.test(dob)) { msg.textContent = 'Date of birth must be 6 digits — DDMMYY. E.g. 150690.'; msg.className = 'msg err'; return; }
     msg.textContent = '';
     document.getElementById('step-1').style.display = 'none';
     document.getElementById('step-2').style.display = 'block';
@@ -504,7 +514,7 @@ export function dashboardPage() {
           name: document.getElementById('reg-name').value.trim(),
           email: document.getElementById('reg-email').value.trim(),
           phone: document.getElementById('reg-phone').value.trim(),
-          pin: document.getElementById('reg-pin').value.trim(),
+          dob: document.getElementById('reg-dob').value.trim(),
           contacts,
         }),
       });
@@ -515,7 +525,7 @@ export function dashboardPage() {
         document.getElementById('success-section').style.display = 'block';
         document.getElementById('ind-2').className = 'step-ind done';
         document.getElementById('ind-3').className = 'step-ind active';
-        document.getElementById('member-num-display').textContent = data.memberNumber;
+        document.getElementById('member-phone-display').textContent = document.getElementById('reg-phone').value.trim();
         const ul = document.getElementById('contacts-final');
         contacts.forEach(c => {
           const li = document.createElement('li');
