@@ -2,6 +2,7 @@ name = "bustcard"
 main = "src/worker.js"
 compatibility_date = "2024-03-31"
 compatibility_flags = ["nodejs_compat"]
+workers_dev = true
 
 [observability.logs]
 enabled = true
