@@ -197,6 +197,33 @@ export function dashboardPage() {
     .msg.ok { color: var(--success); }
     .msg.err { color: var(--danger); }
 
+    /* DEADMAN */
+    .dm-quick {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 14px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+    }
+    .dm-quick:hover { border-color: var(--pink); color: var(--pink); }
+    .dm-quick.selected { border-color: var(--pink); color: var(--pink); background: rgba(255,0,153,0.08); }
+    input[type="datetime-local"] {
+      width: 100%;
+      background: var(--dark);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 12px 14px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.9rem;
+      outline: none;
+      color-scheme: dark;
+    }
+    input[type="datetime-local"]:focus { border-color: var(--pink); }
+
     /* SUCCESS SCREEN */
     #success-section { display: none; }
     #success-section.show { display: block; }
@@ -414,6 +441,53 @@ export function dashboardPage() {
       <ul class="contacts-list-final" id="contacts-final"></ul>
     </div>
 
+    <!-- DEADMAN SWITCH -->
+    <div class="card" id="deadman-card" style="border-color:var(--pink);margin-top:24px;">
+      <div class="card-label">// deadman switch</div>
+      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:20px;line-height:1.7;font-weight:400;">
+        Set a timer. If you don't cancel it before it fires, your contacts get the alert automatically — no call needed.
+        You'll get a cancel link by SMS. Tap it if you're safe.
+      </p>
+
+      <!-- IDLE STATE -->
+      <div id="dm-idle">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+          <button class="dm-quick" data-mins="60">+1 HR</button>
+          <button class="dm-quick" data-mins="120">+2 HRS</button>
+          <button class="dm-quick" data-mins="240">+4 HRS</button>
+          <button class="dm-quick" data-mins="480">+8 HRS</button>
+          <button class="dm-quick" data-midnight="1">MIDNIGHT</button>
+        </div>
+
+        <div class="field" style="margin-bottom:12px;">
+          <label>Fires at</label>
+          <input type="datetime-local" id="dm-time" />
+        </div>
+        <div class="field" style="margin-bottom:12px;">
+          <label>Location (optional)</label>
+          <input type="text" id="dm-location" placeholder="e.g. Newtown Police Station" />
+        </div>
+        <div class="field" style="margin-bottom:16px;">
+          <label>Message for contacts (optional)</label>
+          <input type="text" id="dm-message" placeholder='e.g. "I was at the blockade on King St"' />
+        </div>
+        <button class="btn" id="dm-set-btn">SET DEADMAN SWITCH →</button>
+        <div class="msg" id="dm-msg"></div>
+      </div>
+
+      <!-- ACTIVE STATE -->
+      <div id="dm-active" style="display:none;">
+        <div style="border:1px solid var(--pink);padding:20px;margin-bottom:16px;background:rgba(255,0,153,0.05);">
+          <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--pink);margin-bottom:8px;">// SWITCH ARMED</div>
+          <div style="font-size:1rem;font-weight:700;margin-bottom:4px;" id="dm-fires-at-display">——</div>
+          <div style="font-size:0.75rem;color:var(--muted);font-weight:400;">Cancel link sent to your mobile. Tap it if you're safe.</div>
+        </div>
+        <div id="dm-countdown" style="font-size:2rem;font-weight:700;color:var(--pink);text-align:center;padding:16px 0;letter-spacing:0.05em;font-family:'Roboto Mono',monospace;">--:--:--</div>
+        <button class="btn" id="dm-cancel-btn" style="background:transparent;border:1px solid var(--danger);color:var(--danger);">CANCEL SWITCH</button>
+        <div class="msg" id="dm-cancel-msg"></div>
+      </div>
+    </div>
+
     <div class="card" style="border-color:var(--border);">
       <div class="card-label">// legal resources — included in every SMS</div>
       <div style="display:flex;flex-direction:column;gap:12px;">
@@ -524,12 +598,21 @@ export function dashboardPage() {
       });
       const data = await res.json();
       if (res.ok) {
+        // Store for deadman use
+        window._userPhone = document.getElementById('reg-phone').value.trim();
+        window._userDob = document.getElementById('reg-dob').value.trim();
+
         // Show success
         document.getElementById('form-section').style.display = 'none';
         document.getElementById('success-section').style.display = 'block';
         document.getElementById('ind-2').className = 'step-ind done';
         document.getElementById('ind-3').className = 'step-ind active';
-        document.getElementById('member-phone-display').textContent = document.getElementById('reg-phone').value.trim();
+        document.getElementById('member-phone-display').textContent = window._userPhone;
+
+        // Set default deadman time to +4 hours
+        const def = new Date(Date.now() + 4 * 60 * 60 * 1000);
+        document.getElementById('dm-time').value = toLocalInput(def);
+
         const ul = document.getElementById('contacts-final');
         contacts.forEach(c => {
           const li = document.createElement('li');
@@ -550,6 +633,136 @@ export function dashboardPage() {
       btn.disabled = false;
     }
   });
+
+  // --- DEADMAN SWITCH ---
+
+  let _cancelToken = null;
+  let _firesAt = null;
+  let _countdownInterval = null;
+
+  function toLocalInput(date) {
+    const pad = n => String(n).padStart(2, '0');
+    return date.getFullYear() + '-' + pad(date.getMonth()+1) + '-' + pad(date.getDate()) +
+      'T' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+  }
+
+  // Quick-set buttons
+  document.querySelectorAll('.dm-quick').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.dm-quick').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      let t;
+      if (btn.dataset.midnight) {
+        t = new Date();
+        t.setHours(23, 59, 0, 0);
+        if (t <= new Date()) t.setDate(t.getDate() + 1);
+      } else {
+        t = new Date(Date.now() + parseInt(btn.dataset.mins) * 60 * 1000);
+      }
+      document.getElementById('dm-time').value = toLocalInput(t);
+    });
+  });
+
+  // Set switch
+  document.getElementById('dm-set-btn').addEventListener('click', async () => {
+    const msg = document.getElementById('dm-msg');
+    const timeVal = document.getElementById('dm-time').value;
+    if (!timeVal) { msg.textContent = 'Pick a time first.'; msg.className = 'msg err'; return; }
+
+    const firesAt = new Date(timeVal);
+    if (firesAt <= new Date()) { msg.textContent = 'Fire time must be in the future.'; msg.className = 'msg err'; return; }
+
+    if (!window._userPhone || !window._userDob) {
+      msg.textContent = 'Session expired. Refresh and register again.'; msg.className = 'msg err'; return;
+    }
+
+    const btn = document.getElementById('dm-set-btn');
+    btn.textContent = 'ARMING...'; btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/deadman/set', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: window._userPhone,
+          dob: window._userDob,
+          fires_at: firesAt.toISOString(),
+          location: document.getElementById('dm-location').value.trim() || null,
+          message: document.getElementById('dm-message').value.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        _cancelToken = data.cancel_token;
+        _firesAt = new Date(data.fires_at);
+        showActiveSwitch(_firesAt);
+        msg.textContent = '';
+      } else {
+        msg.textContent = data.error || 'Failed to set switch.';
+        msg.className = 'msg err';
+      }
+    } catch {
+      msg.textContent = 'Network error.'; msg.className = 'msg err';
+    } finally {
+      btn.textContent = 'SET DEADMAN SWITCH →'; btn.disabled = false;
+    }
+  });
+
+  // Cancel switch
+  document.getElementById('dm-cancel-btn').addEventListener('click', async () => {
+    const msg = document.getElementById('dm-cancel-msg');
+    if (!_cancelToken) { msg.textContent = 'No active switch found.'; msg.className = 'msg err'; return; }
+
+    const btn = document.getElementById('dm-cancel-btn');
+    btn.textContent = 'CANCELLING...'; btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/deadman/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: _cancelToken }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        clearInterval(_countdownInterval);
+        _cancelToken = null; _firesAt = null;
+        document.getElementById('dm-active').style.display = 'none';
+        document.getElementById('dm-idle').style.display = 'block';
+        msg.textContent = '';
+        document.getElementById('dm-msg').textContent = '// Switch cancelled. You\'re good.';
+        document.getElementById('dm-msg').className = 'msg ok';
+      } else {
+        msg.textContent = data.error || 'Failed to cancel.'; msg.className = 'msg err';
+      }
+    } catch {
+      msg.textContent = 'Network error.'; msg.className = 'msg err';
+    } finally {
+      btn.textContent = 'CANCEL SWITCH'; btn.disabled = false;
+    }
+  });
+
+  function showActiveSwitch(firesAt) {
+    document.getElementById('dm-idle').style.display = 'none';
+    document.getElementById('dm-active').style.display = 'block';
+    document.getElementById('dm-fires-at-display').textContent =
+      'Fires at ' + firesAt.toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' });
+
+    clearInterval(_countdownInterval);
+    _countdownInterval = setInterval(() => {
+      const diff = firesAt - Date.now();
+      if (diff <= 0) {
+        clearInterval(_countdownInterval);
+        document.getElementById('dm-countdown').textContent = 'FIRED';
+        document.getElementById('dm-countdown').style.color = 'var(--danger)';
+        return;
+      }
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      const pad = n => String(n).padStart(2, '0');
+      document.getElementById('dm-countdown').textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+    }, 1000);
+  }
 </script>
 </body>
 </html>`;
