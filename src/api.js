@@ -59,7 +59,7 @@ export async function handleAPI(request, env, corsHeaders) {
   if (path === '/api/ivr/gather' && request.method === 'POST') {
     return twiml(`
       <Gather input="dtmf" numDigits="10" action="/api/ivr/dob" method="POST" timeout="12">
-        <Say voice="alice" language="en-AU">Welcome to 1800 Radical. Enter your 10 digit mobile number, starting with zero.</Say>
+        <Say voice="alice" language="en-AU">Welcome to 1800 BUSTED. Enter your 10 digit mobile number, starting with zero.</Say>
       </Gather>
       <Say voice="alice" language="en-AU">We didn't receive your mobile number. Please call back.</Say>
     `);
@@ -177,6 +177,68 @@ export async function handleAPI(request, env, corsHeaders) {
     ).bind(user.id, notified, params.get('Caller') || null, 'sent').run();
 
     return twiml(`<Say voice="alice" language="en-AU">Done. We've notified ${notified} of your contacts with your location and message. Stay calm and ask for a lawyer before any interview. Good luck.</Say>`);
+  }
+
+  // POST /api/deadman/set — set a deadman switch
+  if (path === '/api/deadman/set' && request.method === 'POST') {
+    const { phone, dob, fires_at, location, message } = await request.json();
+    if (!phone || !dob || !fires_at) return json({ error: 'Mobile, date of birth and fire time required.' }, 400);
+
+    const mobile = phone.replace(/\s+/g, '').replace(/^0/, '+61');
+    const user = await env.DB.prepare('SELECT * FROM users WHERE phone = ? AND active = 1').bind(mobile).first();
+    if (!user) return json({ error: 'Account not found.' }, 404);
+
+    const dobValid = await verifyHash(dob, user.dob_hash);
+    if (!dobValid) return json({ error: 'Date of birth did not match.' }, 403);
+
+    const firesAt = new Date(fires_at);
+    if (isNaN(firesAt) || firesAt <= new Date()) return json({ error: 'Fire time must be in the future.' }, 400);
+
+    // Cancel any existing active switch first
+    await env.DB.prepare(
+      'UPDATE deadman_switches SET cancelled = 1 WHERE user_id = ? AND cancelled = 0 AND fired = 0'
+    ).bind(user.id).run();
+
+    const cancelToken = crypto.randomUUID();
+    await env.DB.prepare(
+      'INSERT INTO deadman_switches (user_id, fires_at, location, message, cancel_token) VALUES (?, ?, ?, ?, ?)'
+    ).bind(user.id, firesAt.toISOString(), location || null, message || null, cancelToken).run();
+
+    // Send cancel link to user's own number
+    const cancelUrl = `https://busted.theradicalparty.com/cancel/${cancelToken}`;
+    const mins = Math.round((firesAt - new Date()) / 60000);
+    const smsToUser = `1800 BUSTED: Your deadman switch is set. If not cancelled, your contacts will be alerted in ${mins} minutes. Cancel here: ${cancelUrl}`;
+    try { await sendSMS(env, mobile, smsToUser); } catch (_) {}
+
+    return json({ ok: true, fires_at: firesAt.toISOString(), cancel_url: cancelUrl });
+  }
+
+  // POST /api/deadman/cancel — cancel by token
+  if (path === '/api/deadman/cancel' && request.method === 'POST') {
+    const { token } = await request.json();
+    if (!token) return json({ error: 'Token required.' }, 400);
+    const sw = await env.DB.prepare('SELECT * FROM deadman_switches WHERE cancel_token = ?').bind(token).first();
+    if (!sw) return json({ error: 'Switch not found.' }, 404);
+    if (sw.fired) return json({ error: 'Already fired.' }, 409);
+    if (sw.cancelled) return json({ ok: true, message: 'Already cancelled.' });
+    await env.DB.prepare('UPDATE deadman_switches SET cancelled = 1 WHERE cancel_token = ?').bind(token).run();
+    return json({ ok: true });
+  }
+
+  // GET /api/deadman/status?phone=&dob=
+  if (path === '/api/deadman/status' && request.method === 'GET') {
+    const phone = url.searchParams.get('phone');
+    const dob = url.searchParams.get('dob');
+    if (!phone || !dob) return json({ error: 'Phone and dob required.' }, 400);
+    const mobile = phone.replace(/\s+/g, '').replace(/^0/, '+61');
+    const user = await env.DB.prepare('SELECT * FROM users WHERE phone = ? AND active = 1').bind(mobile).first();
+    if (!user) return json({ error: 'Account not found.' }, 404);
+    const dobValid = await verifyHash(dob, user.dob_hash);
+    if (!dobValid) return json({ error: 'Date of birth did not match.' }, 403);
+    const active = await env.DB.prepare(
+      'SELECT * FROM deadman_switches WHERE user_id = ? AND cancelled = 0 AND fired = 0 ORDER BY created_at DESC LIMIT 1'
+    ).bind(user.id).first();
+    return json({ active: !!active, switch: active || null });
   }
 
   // POST /api/waitlist

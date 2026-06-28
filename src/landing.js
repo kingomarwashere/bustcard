@@ -4,7 +4,7 @@ export function landingPage() {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>1800 RADICAL — If you get arrested, who finds out?</title>
+  <title>1800 BUSTED — If you get arrested, who finds out?</title>
   <meta name="description" content="If you get arrested, who finds out? One call. No internet. No memory required. Your people get texted in seconds." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -508,8 +508,8 @@ export function landingPage() {
     </div>
     <div class="step">
       <div class="step-num">02 //</div>
-      <h3>If arrested, call 1800 RADICAL</h3>
-      <p>Ask to make your phone call. Dial 1800 RADICAL from the station phone — it's free to call and police must let you make it.</p>
+      <h3>If arrested, call 1800 BUSTED</h3>
+      <p>Ask to make your phone call. Dial 1800 BUSTED from the station phone — it's free to call and police must let you make it.</p>
     </div>
     <div class="step">
       <div class="step-num">03 //</div>
@@ -536,7 +536,7 @@ export function landingPage() {
 
   <div class="callout">
     <p>
-      Activists have been writing a lawyer's number on their forearm in sharpie before a direct action for decades. That piece of paper handed out at rallies — legal support line, bail fund number — that's the original bust card. <strong>1800 Radical</strong> is the digital version, built so it works even when your phone is confiscated and your memory has left the building.
+      Activists have been writing a lawyer's number on their forearm in sharpie before a direct action for decades. That piece of paper handed out at rallies — legal support line, bail fund number — that's the original bust card. <strong>1800 BUSTED</strong> is the digital version, built so it works even when your phone is confiscated and your memory has left the building.
     </p>
   </div>
 
@@ -599,11 +599,44 @@ export function landingPage() {
 </section>
 </div>
 
+<!-- DEADMAN SWITCH -->
+<div class="section-wrap">
+<section id="deadman">
+  <div class="section-label">// deadman switch</div>
+  <h2>Set it. Don't check in.<br>It fires itself.</h2>
+  <div class="callout">
+    <p>A deadman switch is an automatic trigger. Set it before a protest, a raid, or anywhere you might not come back from easily. If you don't cancel it in time, <strong>it alerts your contacts automatically</strong> — no call required. You don't have to do anything when things go wrong. That's the point.</p>
+  </div>
+  <div class="steps" style="margin-top:0;">
+    <div class="step">
+      <div class="step-num">01 //</div>
+      <h3>Set a timer</h3>
+      <p>From your account, set a switch: "alert my contacts at 11pm if I haven't cancelled this." Add a preset location and message.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02 //</div>
+      <h3>Check in to cancel</h3>
+      <p>You get a cancel link by SMS. Tap it if you're safe. One second. That's it.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03 //</div>
+      <h3>If you don't cancel — it fires</h3>
+      <p>At the set time your contacts get the full alert: your name, location, preset message, and legal resources. Automatically.</p>
+    </div>
+  </div>
+  <div class="sms-preview" style="margin-top:32px;">
+    <div class="sms-label">// what contacts receive when a deadman fires</div>
+    <div class="sms-bubble">DEADMAN ALERT: Jordan Smith set an automatic check-in and did not cancel it. Location: Newtown. Triggered: 11:00 PM AEST. Their message: "I was at the blockade on King St." They may be in custody or need help. Legal help: Legal Aid in your state · ALS 1800 765 767.</div>
+    <div class="sms-meta">// fires automatically — no call needed</div>
+  </div>
+</section>
+</div>
+
 <!-- PRICING -->
 <div class="section-wrap">
 <section id="pricing">
   <div class="section-label">// plans</div>
-  <h2>Simple pricing. No gotchas.</h2>
+  <h2>Simple pricing.<br>No gotchas.</h2>
   <div class="pricing-grid">
     <div class="pricing-card">
       <div class="tag">// free forever</div>
@@ -612,26 +645,28 @@ export function landingPage() {
       <div class="price-note">No card required</div>
       <ul class="pricing-features">
         <li class="on">Mobile + date of birth ID</li>
-        <li class="on">Up to 3 contacts notified</li>
-        <li class="on">SMS alert with legal numbers</li>
-        <li>Lawyer auto dial-out</li>
-        <li>Protest-day group mode</li>
+        <li class="on">Up to 3 contacts</li>
+        <li class="on">Location + voice message</li>
+        <li class="on">SMS with legal resources</li>
+        <li>Deadman switch</li>
+        <li>Unlimited contacts</li>
       </ul>
       <a href="/dashboard" class="btn-ghost" style="text-align:center;">GET STARTED FREE</a>
     </div>
     <div class="pricing-card featured">
-      <div class="tag">// full access</div>
-      <h3>FULL</h3>
-      <div class="price">$4.99<sub>/mo</sub></div>
-      <div class="price-note">Or $39/year — save $21</div>
+      <div class="tag">// pay once. own it forever.</div>
+      <h3>LIFETIME</h3>
+      <div class="price">$67<sub>.69</sub></div>
+      <div class="price-note">One payment. No subscription. All future features.</div>
       <ul class="pricing-features">
         <li class="on">Mobile + date of birth ID</li>
-        <li class="on">Up to 10 contacts notified</li>
-        <li class="on">SMS alert with legal numbers</li>
-        <li class="on">Lawyer auto dial-out</li>
-        <li class="on">Protest-day group mode</li>
+        <li class="on">Unlimited contacts</li>
+        <li class="on">Location + voice message</li>
+        <li class="on">SMS with legal resources</li>
+        <li class="on">Deadman switch</li>
+        <li class="on">Every feature we ever ship</li>
       </ul>
-      <a href="/dashboard" class="btn-primary" style="text-align:center;">GET YOUR NUMBER</a>
+      <a href="/dashboard" class="btn-primary" style="text-align:center;">GET LIFETIME ACCESS →</a>
     </div>
   </div>
 </section>
@@ -644,8 +679,8 @@ export function landingPage() {
   <h2>Common questions.</h2>
   <div class="faq-list">
     <div class="faq-item">
-      <div class="faq-q">Can police refuse to let me call 1800 RADICAL?</div>
-      <div class="faq-a">In every Australian state and territory you have the right to notify someone of your arrest and to contact a lawyer. In practice, custody managers have discretion about which numbers they'll dial. An automated service is a grey area — some officers will dial it, others may insist you call a person directly. If you get resistance, ask for Legal Aid or a duty lawyer first and let them contact your people. For planned actions, carry 1800 RADICAL <em>and</em> a backup human number. Know your state's rules: NSW, VIC, QLD, WA, SA, TAS, ACT and NT all have slightly different custody rights legislation but the core notification right exists everywhere.</div>
+      <div class="faq-q">Can police refuse to let me call 1800 BUSTED?</div>
+      <div class="faq-a">In every Australian state and territory you have the right to notify someone of your arrest and to contact a lawyer. In practice, custody managers have discretion about which numbers they'll dial. An automated service is a grey area — some officers will dial it, others may insist you call a person directly. If you get resistance, ask for Legal Aid or a duty lawyer first and let them contact your people. For planned actions, carry 1800 BUSTED <em>and</em> a backup human number. Know your state's rules: NSW, VIC, QLD, WA, SA, TAS, ACT and NT all have slightly different custody rights legislation but the core notification right exists everywhere.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">What exactly does the SMS say?</div>
@@ -653,7 +688,7 @@ export function landingPage() {
     </div>
     <div class="faq-item">
       <div class="faq-q">Does this work if I'm sent to prison or remand?</div>
-      <div class="faq-a">1800 Radical is designed for the police station stage — the critical first few hours after arrest. Correctional centres across Australia use a separate Offender Telephone System that only allows pre-approved numbers. This doesn't work inside prison, but that's not when you need it. The notification happens at the station, before anything else.</div>
+      <div class="faq-a">1800 BUSTED is designed for the police station stage — the critical first few hours after arrest. Correctional centres across Australia use a separate Offender Telephone System that only allows pre-approved numbers. This doesn't work inside prison, but that's not when you need it. The notification happens at the station, before anything else.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">Do my contacts need to sign up for anything?</div>
@@ -665,7 +700,7 @@ export function landingPage() {
     </div>
     <div class="faq-item">
       <div class="faq-q">Is this legal?</div>
-      <div class="faq-a">Yes. 1800 Radical is a notification relay service. It sends an SMS on your behalf, nothing more. We don't provide legal advice and we're not a legal service. The SMS contains publicly available numbers — we're just making sure your people have them at the right moment.</div>
+      <div class="faq-a">Yes. 1800 BUSTED is a notification relay service. It sends an SMS on your behalf, nothing more. We don't provide legal advice and we're not a legal service. The SMS contains publicly available numbers — we're just making sure your people have them at the right moment.</div>
     </div>
   </div>
 </section>
@@ -677,13 +712,13 @@ export function landingPage() {
   <div class="footer-logo"><span>1800</span> RADICAL</div>
   <ul class="footer-links">
     <li><a href="#how">HOW IT WORKS</a></li>
-    <li><a href="#who">WHO IT'S FOR</a></li>
+    <li><a href="#deadman">DEADMAN SWITCH</a></li>
     <li><a href="#pricing">PRICING</a></li>
     <li><a href="#faq">FAQ</a></li>
     <li><a href="https://theradicalparty.com">RADICAL PARTY</a></li>
   </ul>
   <div class="footer-disclaimer">
-    1800 Radical is a notification service, not a legal service. Nothing on this site constitutes legal advice. For legal help contact Legal Aid in your state: NSW 1300 888 529 · VIC 1300 792 387 · QLD 1300 651 188 · WA 1300 650 579 · SA 1300 366 424 · NT 1800 019 343 · Aboriginal Legal Service 1800 765 767. &copy; ${new Date().getFullYear()} 1800 Radical — a Radical Party project.
+    1800 BUSTED is a notification service, not a legal service. Nothing on this site constitutes legal advice. For legal help contact Legal Aid in your state: NSW 1300 888 529 · VIC 1300 792 387 · QLD 1300 651 188 · WA 1300 650 579 · SA 1300 366 424 · NT 1800 019 343 · Aboriginal Legal Service 1800 765 767. &copy; ${new Date().getFullYear()} 1800 BUSTED — a Radical Party project.
   </div>
 </footer>
 </div>
