@@ -729,7 +729,7 @@ export function dashboardPage() {
         document.getElementById('dm-active').style.display = 'none';
         document.getElementById('dm-idle').style.display = 'block';
         msg.textContent = '';
-        document.getElementById('dm-msg').textContent = '// Switch cancelled. You\'re good.';
+        document.getElementById('dm-msg').textContent = "// Switch cancelled. You're good.";
         document.getElementById('dm-msg').className = 'msg ok';
       } else {
         msg.textContent = data.error || 'Failed to cancel.'; msg.className = 'msg err';
