@@ -313,7 +313,7 @@ export function dashboardPage() {
 <div class="container">
 
   <div class="top-nav">
-    <div class="logo"><span>1800</span> RADICAL</div>
+    <div class="logo"><span>1800</span> BUSTED</div>
     <a href="/" class="back-link">← BACK</a>
   </div>
 
@@ -388,7 +388,7 @@ export function dashboardPage() {
 
     <div class="call-block">
       <div class="cb-label">// the number to call if arrested</div>
-      <div class="cb-num"><span>1800</span> RADICAL</div>
+      <div class="cb-num"><span>1800</span> BUSTED</div>
       <p>Free to call from any phone, including police station phones. Enter your mobile number, then your date of birth when prompted.</p>
     </div>
 

@@ -473,7 +473,7 @@ export function landingPage() {
 
 <!-- NAV -->
 <nav>
-  <a href="/" class="nav-logo"><span>1800</span> RADICAL</a>
+  <a href="/" class="nav-logo"><span>1800</span> BUSTED</a>
   <a href="/dashboard" class="nav-cta">GET YOUR NUMBER</a>
 </nav>
 
@@ -487,7 +487,7 @@ export function landingPage() {
   </p>
   <div class="number-display">
     <div class="nd-label">// call this number</div>
-    <div class="nd-num"><span>1800</span> RADICAL</div>
+    <div class="nd-num"><span>1800</span> BUSTED</div>
   </div>
   <div class="hero-ctas">
     <a href="/dashboard" class="btn-primary">SET UP YOUR NUMBER →</a>
@@ -709,7 +709,7 @@ export function landingPage() {
 <!-- FOOTER -->
 <div class="section-wrap">
 <footer>
-  <div class="footer-logo"><span>1800</span> RADICAL</div>
+  <div class="footer-logo"><span>1800</span> BUSTED</div>
   <ul class="footer-links">
     <li><a href="#how">HOW IT WORKS</a></li>
     <li><a href="#deadman">DEADMAN SWITCH</a></li>
