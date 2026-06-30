@@ -252,13 +252,21 @@ export async function handleAPI(request, env, corsHeaders) {
     const { name, firm, email, phone } = await request.json();
     if (!name || !email || !phone) return json({ error: 'Name, email and mobile required.' }, 400);
     const cleanPhone = phone.replace(/\s+/g, '').replace(/^0/, '+61');
-    const token = crypto.randomUUID().replace(/-/g, '');
+
+    const slugify = s => s.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '-').slice(0, 60);
+    const base = firm ? slugify(`${name}-${firm}`) : slugify(name);
+    let slug = base;
+    let n = 2;
+    while (await env.DB.prepare('SELECT 1 FROM lawyers WHERE token = ?').bind(slug).first()) {
+      slug = `${base}-${n++}`;
+    }
+
     try {
       await env.DB.prepare(
         'INSERT INTO lawyers (name, firm, email, phone, token) VALUES (?, ?, ?, ?, ?)'
-      ).bind(name, firm || null, email.toLowerCase().trim(), cleanPhone, token).run();
-      const url = `https://busted.theradicalparty.com/lawyer/${token}`;
-      return json({ ok: true, url, token });
+      ).bind(name, firm || null, email.toLowerCase().trim(), cleanPhone, slug).run();
+      const url = `https://busted.theradicalparty.com/lawyer/${slug}`;
+      return json({ ok: true, url, token: slug });
     } catch (e) {
       if (e.message?.includes('UNIQUE')) return json({ error: 'That email is already registered as a lawyer account.' }, 409);
       return json({ error: 'Failed to create lawyer account.' }, 500);
