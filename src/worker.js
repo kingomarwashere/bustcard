@@ -1,6 +1,7 @@
 import { handleAPI } from './api.js';
 import { landingPage } from './landing.js';
 import { dashboardPage } from './dashboard.js';
+import { adminPage } from './admin.js';
 
 export default {
   async fetch(request, env, ctx) {
@@ -24,6 +25,12 @@ export default {
 
       if (path === '/dashboard' || path === '/dashboard/') {
         return new Response(dashboardPage(), {
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
+      }
+
+      if (path === '/admin' || path === '/admin/') {
+        return new Response(adminPage(), {
           headers: { 'Content-Type': 'text/html; charset=utf-8' },
         });
       }

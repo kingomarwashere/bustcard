@@ -263,6 +263,28 @@ export async function handleAPI(request, env, corsHeaders) {
     return json(rows.results);
   }
 
+  // GET /api/admin/users — signups + their contacts
+  if (path === '/api/admin/users' && request.method === 'GET') {
+    const token = request.headers.get('Authorization');
+    if (token !== `Bearer ${env.ADMIN_SECRET}`) return json({ error: 'Forbidden' }, 403);
+    const users = await env.DB.prepare(
+      'SELECT id, name, email, phone, active, created_at FROM users ORDER BY created_at DESC LIMIT 200'
+    ).all();
+    const contacts = await env.DB.prepare(
+      'SELECT user_id, name, phone, relationship, sort_order FROM contacts ORDER BY user_id, sort_order'
+    ).all();
+    const contactsByUser = {};
+    for (const c of (contacts.results || [])) {
+      if (!contactsByUser[c.user_id]) contactsByUser[c.user_id] = [];
+      contactsByUser[c.user_id].push(c);
+    }
+    const result = (users.results || []).map(u => ({
+      ...u,
+      contacts: contactsByUser[u.id] || [],
+    }));
+    return json(result);
+  }
+
   return json({ error: 'Not found.' }, 404);
 }
 
