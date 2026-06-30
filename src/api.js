@@ -29,9 +29,15 @@ export async function handleAPI(request, env, corsHeaders) {
     const dobHash = await hashValue(dob);
 
     try {
+      const emailClean = email.toLowerCase().trim();
+      const alreadyPaid = await env.DB.prepare(
+        'SELECT 1 FROM lifetime_purchasers WHERE email = ?'
+      ).bind(emailClean).first();
+      const plan = alreadyPaid ? 'lifetime' : 'free';
+
       const result = await env.DB.prepare(
-        'INSERT INTO users (name, email, phone, dob_hash) VALUES (?, ?, ?, ?)'
-      ).bind(name, email.toLowerCase().trim(), cleanPhone, dobHash).run();
+        'INSERT INTO users (name, email, phone, dob_hash, plan) VALUES (?, ?, ?, ?, ?)'
+      ).bind(name, emailClean, cleanPhone, dobHash, plan).run();
 
       const userId = result.meta.last_row_id;
 
@@ -241,6 +247,59 @@ export async function handleAPI(request, env, corsHeaders) {
     return json({ active: !!active, switch: active || null });
   }
 
+  // POST /api/lawyer/register
+  if (path === '/api/lawyer/register' && request.method === 'POST') {
+    const { name, firm, email, phone } = await request.json();
+    if (!name || !email || !phone) return json({ error: 'Name, email and mobile required.' }, 400);
+    const cleanPhone = phone.replace(/\s+/g, '').replace(/^0/, '+61');
+    const token = crypto.randomUUID().replace(/-/g, '');
+    try {
+      await env.DB.prepare(
+        'INSERT INTO lawyers (name, firm, email, phone, token) VALUES (?, ?, ?, ?, ?)'
+      ).bind(name, firm || null, email.toLowerCase().trim(), cleanPhone, token).run();
+      const url = `https://busted.theradicalparty.com/lawyer/${token}`;
+      return json({ ok: true, url, token });
+    } catch (e) {
+      if (e.message?.includes('UNIQUE')) return json({ error: 'That email is already registered as a lawyer account.' }, 409);
+      return json({ error: 'Failed to create lawyer account.' }, 500);
+    }
+  }
+
+  // GET /api/lawyer/:token — fetch lawyer info for client signup page
+  if (path.startsWith('/api/lawyer/') && request.method === 'GET') {
+    const token = path.replace('/api/lawyer/', '');
+    if (!token) return json({ error: 'Token required.' }, 400);
+    const lawyer = await env.DB.prepare(
+      'SELECT name, firm, phone FROM lawyers WHERE token = ?'
+    ).bind(token).first();
+    if (!lawyer) return json({ error: 'Lawyer link not found.' }, 404);
+    return json(lawyer);
+  }
+
+  // POST /api/stripe/webhook — upgrade user plan to lifetime on successful payment
+  if (path === '/api/stripe/webhook' && request.method === 'POST') {
+    const sig = request.headers.get('stripe-signature');
+    const body = await request.text();
+    if (env.STRIPE_WEBHOOK_SECRET) {
+      const valid = await verifyStripeSignature(body, sig, env.STRIPE_WEBHOOK_SECRET);
+      if (!valid) return new Response('Bad signature', { status: 400 });
+    }
+    const event = JSON.parse(body);
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+      const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim();
+      if (email) {
+        // Upgrade existing user if they have an account
+        await env.DB.prepare("UPDATE users SET plan = 'lifetime' WHERE email = ?").bind(email).run();
+        // Store so they get lifetime if they register later
+        await env.DB.prepare(
+          "INSERT INTO lifetime_purchasers (email, stripe_session_id) VALUES (?, ?) ON CONFLICT(email) DO NOTHING"
+        ).bind(email, session.id).run();
+      }
+    }
+    return new Response('ok', { status: 200 });
+  }
+
   // POST /api/waitlist
   if (path === '/api/waitlist' && request.method === 'POST') {
     const { email, name } = await request.json();
@@ -289,6 +348,21 @@ export async function handleAPI(request, env, corsHeaders) {
 }
 
 // --- Helpers ---
+
+async function verifyStripeSignature(body, sigHeader, secret) {
+  if (!sigHeader) return false;
+  const parts = Object.fromEntries(sigHeader.split(',').map(p => p.split('=')));
+  const t = parts['t'];
+  const v1 = parts['v1'];
+  if (!t || !v1) return false;
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const signed = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${t}.${body}`));
+  const computed = Array.from(new Uint8Array(signed)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return computed === v1;
+}
 
 async function hashValue(value) {
   const encoder = new TextEncoder();

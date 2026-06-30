@@ -474,7 +474,7 @@ export function landingPage() {
 <!-- NAV -->
 <nav>
   <a href="/" class="nav-logo"><span>1800</span> BUSTED</a>
-  <a href="/dashboard" class="nav-cta">GET YOUR NUMBER</a>
+  <a href="/dashboard" class="nav-cta">GET PROTECTED</a>
 </nav>
 
 <!-- HERO -->
@@ -490,7 +490,7 @@ export function landingPage() {
     <div class="nd-num"><span>1800</span> BUSTED</div>
   </div>
   <div class="hero-ctas">
-    <a href="/dashboard" class="btn-primary">SET UP YOUR NUMBER →</a>
+    <a href="/dashboard" class="btn-primary">GET PROTECTED →</a>
     <a href="#how" class="btn-ghost">HOW IT WORKS</a>
   </div>
 </div>
@@ -562,6 +562,78 @@ export function landingPage() {
       <p>Takes two minutes to set up. Costs nothing to have waiting. You don't have to expect it to prepare for it.</p>
     </div>
   </div>
+</section>
+</div>
+
+<!-- LAWYERS -->
+<div class="section-wrap">
+<section id="lawyers">
+  <div class="section-label">// for criminal lawyers</div>
+  <h2>Give every client a<br>digital bust card.</h2>
+
+  <div class="callout">
+    <p>
+      Create a lawyer account in 30 seconds. Share one link. Every client who signs up through it automatically has <strong>you as their first notification contact</strong> — your number fires before any police interview, even if they've lost your card and forgotten your number.
+    </p>
+  </div>
+
+  <div class="steps" style="margin-bottom:40px;">
+    <div class="step">
+      <div class="step-num">01 //</div>
+      <h3>Create your lawyer account</h3>
+      <p>Enter your name, firm and mobile. Takes 30 seconds.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02 //</div>
+      <h3>Share one link with clients</h3>
+      <p>You get a unique URL. Text or email it to clients during onboarding or at their first appointment.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03 //</div>
+      <h3>You're pre-filled as contact #1</h3>
+      <p>When a client signs up through your link, your mobile is locked in as their first contact. No data entry for them. No missed calls for you.</p>
+    </div>
+  </div>
+
+  <!-- LAWYER SIGNUP FORM -->
+  <div id="lawyer-form-wrap" style="border:1px solid var(--pink);padding:32px;max-width:580px;">
+    <div class="section-label">// create your lawyer account</div>
+
+    <div id="lawyer-form">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div>
+          <label style="display:block;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:6px;">Your name</label>
+          <input type="text" id="lf-name" placeholder="Alex Chen" style="width:100%;background:var(--dark);border:1px solid var(--border);color:var(--white);padding:11px 13px;font-family:'Roboto Mono',monospace;font-size:0.85rem;outline:none;" onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--border)'" />
+        </div>
+        <div>
+          <label style="display:block;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:6px;">Firm / organisation</label>
+          <input type="text" id="lf-firm" placeholder="Chen Criminal Defence" style="width:100%;background:var(--dark);border:1px solid var(--border);color:var(--white);padding:11px 13px;font-family:'Roboto Mono',monospace;font-size:0.85rem;outline:none;" onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--border)'" />
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+        <div>
+          <label style="display:block;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:6px;">Your mobile (clients call this)</label>
+          <input type="tel" id="lf-phone" placeholder="04xx xxx xxx" style="width:100%;background:var(--dark);border:1px solid var(--border);color:var(--white);padding:11px 13px;font-family:'Roboto Mono',monospace;font-size:0.85rem;outline:none;" onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--border)'" />
+        </div>
+        <div>
+          <label style="display:block;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:6px;">Your email</label>
+          <input type="email" id="lf-email" placeholder="you@firm.com.au" style="width:100%;background:var(--dark);border:1px solid var(--border);color:var(--white);padding:11px 13px;font-family:'Roboto Mono',monospace;font-size:0.85rem;outline:none;" onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--border)'" />
+        </div>
+      </div>
+      <button id="lf-btn" onclick="lawyerSignup()" style="background:var(--pink);color:var(--black);border:none;padding:13px 28px;font-family:'Roboto Mono',monospace;font-size:0.88rem;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.05em;">CREATE LAWYER ACCOUNT →</button>
+      <div id="lf-msg" style="font-size:0.8rem;margin-top:12px;min-height:18px;"></div>
+    </div>
+
+    <div id="lawyer-success" style="display:none;">
+      <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.14em;color:var(--success);margin-bottom:10px;">// account created</div>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:16px;line-height:1.7;">Share this link with clients. Anyone who signs up through it automatically has you as contact #1.</p>
+      <div style="background:var(--dark);border:1px solid var(--border);padding:16px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+        <code id="lawyer-link" style="font-size:0.82rem;color:var(--pink);word-break:break-all;"></code>
+        <button onclick="copyLink()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 14px;font-family:'Roboto Mono',monospace;font-size:0.72rem;cursor:pointer;white-space:nowrap;" id="copy-btn">COPY LINK</button>
+      </div>
+    </div>
+  </div>
+
 </section>
 </div>
 
@@ -666,7 +738,7 @@ export function landingPage() {
         <li class="on">Deadman switch</li>
         <li class="on">Every feature we ever ship</li>
       </ul>
-      <a href="/dashboard" class="btn-primary" style="text-align:center;">GET LIFETIME ACCESS →</a>
+      <a href="https://buy.stripe.com/28E5kD6nqdldgye3dfgQE00" class="btn-primary" style="text-align:center;">GET LIFETIME ACCESS →</a>
     </div>
   </div>
 </section>
@@ -712,6 +784,7 @@ export function landingPage() {
   <div class="footer-logo"><span>1800</span> BUSTED</div>
   <ul class="footer-links">
     <li><a href="#how">HOW IT WORKS</a></li>
+    <li><a href="#lawyers">FOR LAWYERS</a></li>
     <li><a href="#deadman">DEADMAN SWITCH</a></li>
     <li><a href="#pricing">PRICING</a></li>
     <li><a href="#faq">FAQ</a></li>
@@ -755,6 +828,49 @@ s0.parentNode.insertBefore(s1,s0);
       }
     });
   });
+
+  async function lawyerSignup() {
+    const msg = document.getElementById('lf-msg');
+    const btn = document.getElementById('lf-btn');
+    const name = document.getElementById('lf-name').value.trim();
+    const firm = document.getElementById('lf-firm').value.trim();
+    const phone = document.getElementById('lf-phone').value.trim();
+    const email = document.getElementById('lf-email').value.trim();
+    if (!name) { msg.textContent = 'Enter your name.'; msg.style.color = 'var(--danger)'; return; }
+    if (!phone) { msg.textContent = 'Enter your mobile.'; msg.style.color = 'var(--danger)'; return; }
+    if (!email || !email.includes('@')) { msg.textContent = 'Enter a valid email.'; msg.style.color = 'var(--danger)'; return; }
+    btn.textContent = 'CREATING...'; btn.disabled = true;
+    try {
+      const res = await fetch('/api/lawyer/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, firm, email, phone }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        document.getElementById('lawyer-link').textContent = data.url;
+        document.getElementById('lawyer-form').style.display = 'none';
+        document.getElementById('lawyer-success').style.display = 'block';
+      } else {
+        msg.textContent = data.error || 'Something went wrong.';
+        msg.style.color = 'var(--danger)';
+        btn.textContent = 'CREATE LAWYER ACCOUNT →'; btn.disabled = false;
+      }
+    } catch {
+      msg.textContent = 'Network error. Try again.';
+      msg.style.color = 'var(--danger)';
+      btn.textContent = 'CREATE LAWYER ACCOUNT →'; btn.disabled = false;
+    }
+  }
+
+  function copyLink() {
+    const link = document.getElementById('lawyer-link').textContent;
+    navigator.clipboard.writeText(link).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'COPIED ✓';
+      setTimeout(() => { btn.textContent = 'COPY LINK'; }, 2000);
+    });
+  }
 </script>
 
 </body>

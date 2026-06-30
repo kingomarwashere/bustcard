@@ -2,6 +2,7 @@ import { handleAPI } from './api.js';
 import { landingPage } from './landing.js';
 import { dashboardPage } from './dashboard.js';
 import { adminPage } from './admin.js';
+import { lawyerClientPage } from './lawyer.js';
 
 export default {
   async fetch(request, env, ctx) {
@@ -31,6 +32,20 @@ export default {
 
       if (path === '/admin' || path === '/admin/') {
         return new Response(adminPage(), {
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
+      }
+
+      // /lawyer/:token — client signup with lawyer pre-filled
+      if (path.startsWith('/lawyer/')) {
+        const token = path.replace('/lawyer/', '').replace(/\/$/, '');
+        const lawyer = token ? await env.DB.prepare(
+          'SELECT name, firm, phone FROM lawyers WHERE token = ?'
+        ).bind(token).first() : null;
+        if (!lawyer) {
+          return new Response('Lawyer link not found.', { status: 404 });
+        }
+        return new Response(lawyerClientPage(lawyer), {
           headers: { 'Content-Type': 'text/html; charset=utf-8' },
         });
       }
