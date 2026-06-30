@@ -341,7 +341,10 @@ export function dashboardPage() {
 
   <div class="top-nav">
     <div class="logo"><span>1800</span> BUSTED</div>
-    <a href="/" class="back-link">← BACK</a>
+    <div style="display:flex;gap:16px;align-items:center;">
+      <a href="/login" style="font-size:0.72rem;color:var(--muted);text-decoration:none;" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--muted)'">SIGN IN</a>
+      <a href="/" class="back-link">← BACK</a>
+    </div>
   </div>
 
   <!-- STEP INDICATOR -->

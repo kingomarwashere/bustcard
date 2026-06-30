@@ -474,6 +474,7 @@ export function landingPage() {
 <!-- NAV -->
 <nav>
   <a href="/" class="nav-logo"><span>1800</span> BUSTED</a>
+  <a href="/login" style="font-size:0.8rem;color:var(--muted);text-decoration:none;margin-right:8px;" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--muted)'">SIGN IN</a>
   <a href="/dashboard" class="nav-cta">GET PROTECTED</a>
 </nav>
 

@@ -352,10 +352,129 @@ export async function handleAPI(request, env, corsHeaders) {
     return json(result);
   }
 
+  // POST /api/login
+  if (path === '/api/login' && request.method === 'POST') {
+    const { phone, dob } = await request.json();
+    if (!phone || !dob) return json({ error: 'Mobile and date of birth required.' }, 400);
+    const mobile = phone.replace(/\s+/g, '').replace(/^0/, '+61');
+    const user = await env.DB.prepare('SELECT * FROM users WHERE phone = ? AND active = 1').bind(mobile).first();
+    if (!user) return json({ error: 'No account found for that mobile number.' }, 404);
+    const dobValid = await verifyHash(dob, user.dob_hash);
+    if (!dobValid) return json({ error: 'Date of birth did not match.' }, 401);
+    const secret = env.TOKEN_SECRET || 'busted_1800_token_secret';
+    const token = await createToken(user.id, secret);
+    return json({ ok: true, token, user: { name: user.name, phone: user.phone, email: user.email } });
+  }
+
+  // GET /api/account — full account data (contacts, active deadman, notifications)
+  if (path === '/api/account' && request.method === 'GET') {
+    const userId = await authUser(request, env);
+    if (!userId) return json({ error: 'Unauthorised.' }, 401);
+    const user = await env.DB.prepare('SELECT id, name, email, phone, plan FROM users WHERE id = ?').bind(userId).first();
+    if (!user) return json({ error: 'Account not found.' }, 404);
+    const contacts = await env.DB.prepare(
+      'SELECT name, phone, relationship, sort_order FROM contacts WHERE user_id = ? ORDER BY sort_order'
+    ).bind(userId).all();
+    const active_switch = await env.DB.prepare(
+      'SELECT id, fires_at, location, message, cancel_token FROM deadman_switches WHERE user_id = ? AND cancelled = 0 AND fired = 0 ORDER BY created_at DESC LIMIT 1'
+    ).bind(userId).first();
+    const notifications = await env.DB.prepare(
+      'SELECT triggered_at, contacts_notified, status FROM notifications WHERE user_id = ? ORDER BY triggered_at DESC LIMIT 20'
+    ).bind(userId).all();
+    return json({ user, contacts: contacts.results || [], active_switch: active_switch || null, notifications: notifications.results || [] });
+  }
+
+  // PUT /api/account/contacts — replace contact list
+  if (path === '/api/account/contacts' && request.method === 'PUT') {
+    const userId = await authUser(request, env);
+    if (!userId) return json({ error: 'Unauthorised.' }, 401);
+    const { contacts } = await request.json();
+    if (!contacts?.length) return json({ error: 'At least one contact required.' }, 400);
+    if (contacts.length > 10) return json({ error: 'Maximum 10 contacts.' }, 400);
+    await env.DB.prepare('DELETE FROM contacts WHERE user_id = ?').bind(userId).run();
+    for (let i = 0; i < contacts.length; i++) {
+      const c = contacts[i];
+      if (c.name && c.phone) {
+        await env.DB.prepare(
+          'INSERT INTO contacts (user_id, name, phone, relationship, sort_order) VALUES (?, ?, ?, ?, ?)'
+        ).bind(userId, c.name, c.phone, c.relationship || null, i).run();
+      }
+    }
+    return json({ ok: true });
+  }
+
+  // POST /api/account/deadman/set — set deadman via session token
+  if (path === '/api/account/deadman/set' && request.method === 'POST') {
+    const userId = await authUser(request, env);
+    if (!userId) return json({ error: 'Unauthorised.' }, 401);
+    const user = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(userId).first();
+    if (!user) return json({ error: 'Account not found.' }, 404);
+    const { fires_at, location, message } = await request.json();
+    const firesAt = new Date(fires_at);
+    if (isNaN(firesAt) || firesAt <= new Date()) return json({ error: 'Fire time must be in the future.' }, 400);
+    await env.DB.prepare(
+      'UPDATE deadman_switches SET cancelled = 1 WHERE user_id = ? AND cancelled = 0 AND fired = 0'
+    ).bind(userId).run();
+    const cancelToken = crypto.randomUUID();
+    await env.DB.prepare(
+      'INSERT INTO deadman_switches (user_id, fires_at, location, message, cancel_token) VALUES (?, ?, ?, ?, ?)'
+    ).bind(userId, firesAt.toISOString(), location || null, message || null, cancelToken).run();
+    const cancelUrl = `https://busted.theradicalparty.com/cancel/${cancelToken}`;
+    const mins = Math.round((firesAt - new Date()) / 60000);
+    const smsToUser = `1800 BUSTED: Your deadman switch is set. If not cancelled, your contacts will be alerted in ${mins} minutes. Cancel here: ${cancelUrl}`;
+    try { await sendSMS(env, user.phone, smsToUser); } catch (_) {}
+    return json({ ok: true, fires_at: firesAt.toISOString(), cancel_token: cancelToken, cancel_url: cancelUrl });
+  }
+
+  // POST /api/account/deadman/cancel — cancel active switch via session token
+  if (path === '/api/account/deadman/cancel' && request.method === 'POST') {
+    const userId = await authUser(request, env);
+    if (!userId) return json({ error: 'Unauthorised.' }, 401);
+    const sw = await env.DB.prepare(
+      'SELECT * FROM deadman_switches WHERE user_id = ? AND cancelled = 0 AND fired = 0 ORDER BY created_at DESC LIMIT 1'
+    ).bind(userId).first();
+    if (!sw) return json({ error: 'No active switch found.' }, 404);
+    if (sw.fired) return json({ error: 'Switch already fired.' }, 409);
+    await env.DB.prepare('UPDATE deadman_switches SET cancelled = 1 WHERE id = ?').bind(sw.id).run();
+    return json({ ok: true });
+  }
+
   return json({ error: 'Not found.' }, 404);
 }
 
 // --- Helpers ---
+
+async function createToken(userId, secret) {
+  const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000;
+  const payload = `${userId}:${expiry}`;
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
+  const sigHex = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return btoa(`${payload}:${sigHex}`);
+}
+
+async function verifyToken(token, secret) {
+  try {
+    const decoded = atob(token);
+    const lastColon = decoded.lastIndexOf(':');
+    const payload = decoded.slice(0, lastColon);
+    const sigHex = decoded.slice(lastColon + 1);
+    const [userId, expiry] = payload.split(':');
+    if (Date.now() > parseInt(expiry)) return null;
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
+    const computed = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+    if (computed !== sigHex) return null;
+    return parseInt(userId);
+  } catch { return null; }
+}
+
+async function authUser(request, env) {
+  const auth = request.headers.get('Authorization') || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+  if (!token) return null;
+  return verifyToken(token, env.TOKEN_SECRET || 'busted_1800_token_secret');
+}
 
 async function verifyStripeSignature(body, sigHeader, secret) {
   if (!sigHeader) return false;

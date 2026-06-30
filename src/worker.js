@@ -3,6 +3,8 @@ import { landingPage } from './landing.js';
 import { dashboardPage } from './dashboard.js';
 import { adminPage } from './admin.js';
 import { lawyerClientPage } from './lawyer.js';
+import { loginPage } from './login.js';
+import { accountPage } from './account.js';
 
 export default {
   async fetch(request, env, ctx) {
@@ -26,6 +28,18 @@ export default {
 
       if (path === '/dashboard' || path === '/dashboard/') {
         return new Response(dashboardPage(), {
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
+      }
+
+      if (path === '/login' || path === '/login/') {
+        return new Response(loginPage(), {
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
+      }
+
+      if (path === '/account' || path === '/account/') {
+        return new Response(accountPage(), {
           headers: { 'Content-Type': 'text/html; charset=utf-8' },
         });
       }
