@@ -3,6 +3,7 @@ export function landingPage() {
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>1800 BUSTED — If you get arrested, who finds out?</title>
   <meta name="description" content="If you get arrested, who finds out? One call. No internet. No memory required. Your people get texted in seconds." />

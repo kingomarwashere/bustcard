@@ -5,6 +5,7 @@ import { adminPage } from './admin.js';
 import { lawyerClientPage } from './lawyer.js';
 import { loginPage } from './login.js';
 import { accountPage } from './account.js';
+import { FAVICON_B64 } from './favicon.js';
 
 export default {
   async fetch(request, env, ctx) {
@@ -29,6 +30,13 @@ export default {
       if (path === '/dashboard' || path === '/dashboard/') {
         return new Response(dashboardPage(), {
           headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
+      }
+
+      if (path === '/favicon.ico' || path === '/favicon.png') {
+        const bytes = Uint8Array.from(atob(FAVICON_B64), c => c.charCodeAt(0));
+        return new Response(bytes, {
+          headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' },
         });
       }
 
