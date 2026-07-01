@@ -38,6 +38,8 @@ CREATE TABLE IF NOT EXISTS deadman_switches (
   location TEXT,
   message TEXT,
   cancel_token TEXT NOT NULL UNIQUE,
+  remind_at DATETIME,             -- when to send the pre-fire reminder SMS
+  reminded INTEGER DEFAULT 0,     -- 1 once reminder has been sent
   cancelled INTEGER DEFAULT 0,
   fired INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP

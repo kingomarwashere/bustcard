@@ -193,7 +193,7 @@ export async function handleAPI(request, env, corsHeaders) {
 
   // POST /api/deadman/set — set a deadman switch
   if (path === '/api/deadman/set' && request.method === 'POST') {
-    const { phone, dob, fires_at, location, message } = await request.json();
+    const { phone, dob, fires_at, location, message, remind_before_minutes } = await request.json();
     if (!phone || !dob || !fires_at) return json({ error: 'Mobile, date of birth and fire time required.' }, 400);
 
     const mobile = phone.replace(/\s+/g, '').replace(/^0/, '+61');
@@ -206,23 +206,21 @@ export async function handleAPI(request, env, corsHeaders) {
     const firesAt = new Date(fires_at);
     if (isNaN(firesAt) || firesAt <= new Date()) return json({ error: 'Fire time must be in the future.' }, 400);
 
-    // Cancel any existing active switch first
     await env.DB.prepare(
       'UPDATE deadman_switches SET cancelled = 1 WHERE user_id = ? AND cancelled = 0 AND fired = 0'
     ).bind(user.id).run();
 
     const cancelToken = crypto.randomUUID();
+    const remindAt = calcRemindAt(firesAt, remind_before_minutes);
     await env.DB.prepare(
-      'INSERT INTO deadman_switches (user_id, fires_at, location, message, cancel_token) VALUES (?, ?, ?, ?, ?)'
-    ).bind(user.id, firesAt.toISOString(), location || null, message || null, cancelToken).run();
+      'INSERT INTO deadman_switches (user_id, fires_at, location, message, cancel_token, remind_at) VALUES (?, ?, ?, ?, ?, ?)'
+    ).bind(user.id, firesAt.toISOString(), location || null, message || null, cancelToken, remindAt).run();
 
-    // Send cancel link to user's own number
     const cancelUrl = `https://busted.theradicalparty.com/cancel/${cancelToken}`;
-    const mins = Math.round((firesAt - new Date()) / 60000);
-    const smsToUser = `1800 BUSTED: Your deadman switch is set. If not cancelled, your contacts will be alerted in ${mins} minutes. Cancel here: ${cancelUrl}`;
+    const smsToUser = buildArmSMS(firesAt, cancelUrl, remindAt);
     try { await sendSMS(env, mobile, smsToUser); } catch (_) {}
 
-    return json({ ok: true, fires_at: firesAt.toISOString(), cancel_url: cancelUrl });
+    return json({ ok: true, fires_at: firesAt.toISOString(), cancel_url: cancelUrl, remind_at: remindAt });
   }
 
   // POST /api/deadman/cancel — cancel by token
@@ -415,21 +413,21 @@ export async function handleAPI(request, env, corsHeaders) {
     if (!userId) return json({ error: 'Unauthorised.' }, 401);
     const user = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(userId).first();
     if (!user) return json({ error: 'Account not found.' }, 404);
-    const { fires_at, location, message } = await request.json();
+    const { fires_at, location, message, remind_before_minutes } = await request.json();
     const firesAt = new Date(fires_at);
     if (isNaN(firesAt) || firesAt <= new Date()) return json({ error: 'Fire time must be in the future.' }, 400);
     await env.DB.prepare(
       'UPDATE deadman_switches SET cancelled = 1 WHERE user_id = ? AND cancelled = 0 AND fired = 0'
     ).bind(userId).run();
     const cancelToken = crypto.randomUUID();
+    const remindAt = calcRemindAt(firesAt, remind_before_minutes);
     await env.DB.prepare(
-      'INSERT INTO deadman_switches (user_id, fires_at, location, message, cancel_token) VALUES (?, ?, ?, ?, ?)'
-    ).bind(userId, firesAt.toISOString(), location || null, message || null, cancelToken).run();
+      'INSERT INTO deadman_switches (user_id, fires_at, location, message, cancel_token, remind_at) VALUES (?, ?, ?, ?, ?, ?)'
+    ).bind(userId, firesAt.toISOString(), location || null, message || null, cancelToken, remindAt).run();
     const cancelUrl = `https://busted.theradicalparty.com/cancel/${cancelToken}`;
-    const mins = Math.round((firesAt - new Date()) / 60000);
-    const smsToUser = `1800 BUSTED: Your deadman switch is set. If not cancelled, your contacts will be alerted in ${mins} minutes. Cancel here: ${cancelUrl}`;
+    const smsToUser = buildArmSMS(firesAt, cancelUrl, remindAt);
     try { await sendSMS(env, user.phone, smsToUser); } catch (_) {}
-    return json({ ok: true, fires_at: firesAt.toISOString(), cancel_token: cancelToken, cancel_url: cancelUrl });
+    return json({ ok: true, fires_at: firesAt.toISOString(), cancel_token: cancelToken, cancel_url: cancelUrl, remind_at: remindAt });
   }
 
   // POST /api/account/deadman/cancel — cancel active switch via session token
@@ -495,6 +493,30 @@ async function verifyStripeSignature(body, sigHeader, secret) {
   const signed = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${t}.${body}`));
   const computed = Array.from(new Uint8Array(signed)).map(b => b.toString(16).padStart(2, '0')).join('');
   return computed === v1;
+}
+
+function calcRemindAt(firesAt, remind_before_minutes) {
+  const minsUntil = (firesAt - Date.now()) / 60000;
+  let reminderMins = remind_before_minutes;
+  if (!reminderMins) {
+    // Smart default: remind at ~20% of the total time remaining, capped sensibly
+    if (minsUntil <= 90)    reminderMins = 30;
+    else if (minsUntil <= 480)  reminderMins = 60;
+    else if (minsUntil <= 2880) reminderMins = 120;
+    else if (minsUntil <= 10080) reminderMins = 360;
+    else reminderMins = 1440;
+  }
+  const remindAt = new Date(firesAt.getTime() - reminderMins * 60 * 1000);
+  // Only schedule a reminder if it's in the future
+  return remindAt > new Date() ? remindAt.toISOString() : null;
+}
+
+function buildArmSMS(firesAt, cancelUrl, remindAt) {
+  const aest = firesAt.toLocaleString('en-AU', { timeZone: 'Australia/Sydney', dateStyle: 'medium', timeStyle: 'short' });
+  const reminderNote = remindAt
+    ? ` You'll get a reminder before it fires.`
+    : '';
+  return `1800 BUSTED: Deadman switch ARMED. Fires ${aest} AEST unless you cancel.${reminderNote} Cancel here: ${cancelUrl}`;
 }
 
 async function hashPassword(password) {

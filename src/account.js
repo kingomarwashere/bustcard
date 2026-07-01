@@ -166,27 +166,58 @@ export function accountPage() {
 
       <!-- IDLE -->
       <div id="dm-idle">
-        <p style="font-size:0.8rem;color:var(--muted);margin-bottom:16px;line-height:1.7;">Set a timer. If you don't cancel before it fires, your contacts are alerted automatically.</p>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+        <p style="font-size:0.8rem;color:var(--muted);margin-bottom:20px;line-height:1.7;">Set a timer. If you don't cancel before it fires, your contacts are alerted automatically. You get a cancel link by SMS — one tap and you're good.</p>
+
+        <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:#555;margin-bottom:8px;">// quick set</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+          <button class="dm-quick" data-mins="30">+30 MIN</button>
           <button class="dm-quick" data-mins="60">+1 HR</button>
           <button class="dm-quick" data-mins="120">+2 HRS</button>
           <button class="dm-quick" data-mins="240">+4 HRS</button>
           <button class="dm-quick" data-mins="480">+8 HRS</button>
-          <button class="dm-quick" data-midnight="1">MIDNIGHT</button>
+          <button class="dm-quick" data-mins="720">+12 HRS</button>
         </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+          <button class="dm-quick" data-mins="1440">+24 HRS</button>
+          <button class="dm-quick" data-mins="2880">+48 HRS</button>
+          <button class="dm-quick" data-mins="4320">+72 HRS</button>
+          <button class="dm-quick" data-mins="10080">+1 WEEK</button>
+          <button class="dm-quick" data-mins="20160">+2 WEEKS</button>
+          <button class="dm-quick" data-mins="43200">+1 MONTH</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">
+          <button class="dm-quick" data-midnight="1">TONIGHT MIDNIGHT</button>
+          <button class="dm-quick" data-end-of-week="1">END OF WEEK</button>
+        </div>
+
         <div class="dm-field">
           <label>Fires at</label>
           <input type="datetime-local" id="dm-time" />
         </div>
         <div class="dm-field">
           <label>Location (optional)</label>
-          <input type="text" id="dm-location" placeholder="e.g. Newtown Police Station" />
+          <input type="text" id="dm-location" placeholder="e.g. Newtown Police Station, or 'hiking Mt Kosciuszko'" />
         </div>
         <div class="dm-field">
           <label>Message for contacts (optional)</label>
-          <input type="text" id="dm-message" placeholder='e.g. "I was at the blockade on King St"' />
+          <input type="text" id="dm-message" placeholder='e.g. "I was at the protest on George St" or "I flew to Manila"' />
         </div>
-        <button class="btn-save" id="dm-set-btn">SET DEADMAN SWITCH →</button>
+        <div class="dm-field">
+          <label>Remind me before it fires</label>
+          <select id="dm-remind" style="width:100%;background:var(--dark);border:1px solid var(--border);color:var(--white);padding:11px 13px;font-family:'Roboto Mono',monospace;font-size:0.85rem;outline:none;margin-bottom:10px;">
+            <option value="auto">Auto (recommended)</option>
+            <option value="30">30 minutes before</option>
+            <option value="60">1 hour before</option>
+            <option value="120">2 hours before</option>
+            <option value="360">6 hours before</option>
+            <option value="720">12 hours before</option>
+            <option value="1440">24 hours before</option>
+            <option value="4320">3 days before</option>
+          </select>
+          <div style="font-size:0.68rem;color:#555;margin-top:-6px;margin-bottom:10px;">You'll get an SMS reminder to check in before the switch fires.</div>
+        </div>
+
+        <button class="btn-save" id="dm-set-btn">ARM DEADMAN SWITCH →</button>
         <div class="msg" id="dm-msg"></div>
       </div>
 
@@ -195,7 +226,8 @@ export function accountPage() {
         <div class="armed-box">
           <div class="armed-label">// switch armed</div>
           <div class="armed-time" id="dm-fires-display">——</div>
-          <div class="armed-sub">Cancel link sent to your mobile. Tap it if you're safe.</div>
+          <div id="dm-remind-display" style="font-size:0.72rem;color:var(--muted);margin-top:4px;"></div>
+          <div class="armed-sub" style="margin-top:8px;">Cancel link sent to your mobile. Tap it if you're safe.</div>
         </div>
         <div id="dm-countdown">--:--:--</div>
         <button class="btn-cancel-dm" id="dm-cancel-btn">CANCEL SWITCH</button>
@@ -265,7 +297,10 @@ export function accountPage() {
     if (active_switch) {
       _activeSwitch = active_switch;
       _activeCancelToken = active_switch.cancel_token;
-      showArmedState(new Date(active_switch.fires_at));
+      showArmedState(
+        new Date(active_switch.fires_at),
+        active_switch.remind_at ? new Date(active_switch.remind_at) : null
+      );
     }
 
     // History
@@ -342,12 +377,26 @@ export function accountPage() {
       if (btn.dataset.midnight) {
         t = new Date(); t.setHours(23, 59, 0, 0);
         if (t <= new Date()) t.setDate(t.getDate() + 1);
+      } else if (btn.dataset.endOfWeek) {
+        t = new Date();
+        const daysUntilSun = (7 - t.getDay()) % 7 || 7;
+        t.setDate(t.getDate() + daysUntilSun);
+        t.setHours(23, 59, 0, 0);
       } else {
         t = new Date(Date.now() + parseInt(btn.dataset.mins) * 60000);
       }
       document.getElementById('dm-time').value = toLocalInput(t);
+      // Auto-suggest reminder
+      const minsUntil = btn.dataset.mins ? parseInt(btn.dataset.mins) : null;
+      if (minsUntil) suggestReminder(minsUntil);
     });
   });
+
+  function suggestReminder(minsUntil) {
+    const sel = document.getElementById('dm-remind');
+    if (sel.value !== 'auto') return; // don't override manual choice
+    // Keep on auto — server will calculate the smart default
+  }
 
   // Set switch
   document.getElementById('dm-set-btn').addEventListener('click', async () => {
@@ -357,6 +406,8 @@ export function accountPage() {
     if (!timeVal) { msg.textContent = 'Pick a time first.'; msg.className = 'msg err'; return; }
     const firesAt = new Date(timeVal);
     if (firesAt <= new Date()) { msg.textContent = 'Fire time must be in the future.'; msg.className = 'msg err'; return; }
+    const remindVal = document.getElementById('dm-remind').value;
+    const remind_before_minutes = remindVal === 'auto' ? null : parseInt(remindVal);
     btn.textContent = 'ARMING...'; btn.disabled = true;
     try {
       const res = await api('/api/account/deadman/set', {
@@ -365,12 +416,13 @@ export function accountPage() {
           fires_at: firesAt.toISOString(),
           location: document.getElementById('dm-location').value.trim() || null,
           message: document.getElementById('dm-message').value.trim() || null,
+          remind_before_minutes,
         }),
       });
       const data = await res.json();
       if (res.ok) {
         _activeCancelToken = data.cancel_token;
-        showArmedState(new Date(data.fires_at));
+        showArmedState(new Date(data.fires_at), data.remind_at ? new Date(data.remind_at) : null);
         msg.textContent = '';
       } else {
         msg.textContent = data.error || 'Failed to set switch.'; msg.className = 'msg err';
@@ -378,7 +430,7 @@ export function accountPage() {
     } catch {
       msg.textContent = 'Network error.'; msg.className = 'msg err';
     } finally {
-      btn.textContent = 'SET DEADMAN SWITCH →'; btn.disabled = false;
+      btn.textContent = 'ARM DEADMAN SWITCH →'; btn.disabled = false;
     }
   });
 
@@ -408,11 +460,17 @@ export function accountPage() {
     }
   });
 
-  function showArmedState(firesAt) {
+  function showArmedState(firesAt, remindAt) {
     document.getElementById('dm-idle').style.display = 'none';
     document.getElementById('dm-active').style.display = 'block';
     document.getElementById('dm-fires-display').textContent =
-      'Fires at ' + firesAt.toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' });
+      'Fires ' + firesAt.toLocaleString('en-AU', { dateStyle: 'full', timeStyle: 'short' });
+    const remindEl = document.getElementById('dm-remind-display');
+    if (remindAt && remindAt > new Date()) {
+      remindEl.textContent = 'Reminder: ' + remindAt.toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' });
+    } else {
+      remindEl.textContent = '';
+    }
     clearInterval(_countdownInterval);
     _countdownInterval = setInterval(() => {
       const diff = firesAt - Date.now();

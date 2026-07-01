@@ -89,9 +89,34 @@ export default {
     }
   },
 
-  // Cron: runs every minute to fire expired deadman switches
+  // Cron: runs every minute to fire expired deadman switches and send reminders
   async scheduled(event, env, ctx) {
     const now = new Date().toISOString();
+
+    // --- Send reminders ---
+    const reminders = await env.DB.prepare(`
+      SELECT d.id, d.cancel_token, d.fires_at, d.location, u.phone as user_phone
+      FROM deadman_switches d
+      JOIN users u ON u.id = d.user_id
+      WHERE d.remind_at <= ? AND d.reminded = 0 AND d.cancelled = 0 AND d.fired = 0 AND u.active = 1
+    `).bind(now).all();
+
+    for (const sw of (reminders.results || [])) {
+      const cancelUrl = `https://busted.theradicalparty.com/cancel/${sw.cancel_token}`;
+      const firesAt = new Date(sw.fires_at);
+      const minsLeft = Math.round((firesAt - Date.now()) / 60000);
+      const timeLeft = minsLeft >= 1440
+        ? `${Math.round(minsLeft / 1440)} day${Math.round(minsLeft / 1440) === 1 ? '' : 's'}`
+        : minsLeft >= 60
+          ? `${Math.round(minsLeft / 60)} hour${Math.round(minsLeft / 60) === 1 ? '' : 's'}`
+          : `${minsLeft} minute${minsLeft === 1 ? '' : 's'}`;
+      const locationNote = sw.location ? ` (${sw.location})` : '';
+      const sms = `1800 BUSTED REMINDER: Your deadman switch${locationNote} fires in ${timeLeft}. Still safe? Cancel now: ${cancelUrl}`;
+      try { await sendSMS(env, sw.user_phone, sms); } catch (_) {}
+      await env.DB.prepare('UPDATE deadman_switches SET reminded = 1 WHERE id = ?').bind(sw.id).run();
+    }
+
+    // --- Fire due switches ---
     const due = await env.DB.prepare(`
       SELECT d.*, u.name, u.phone as user_phone
       FROM deadman_switches d

@@ -462,12 +462,26 @@ export function dashboardPage() {
 
       <!-- IDLE STATE -->
       <div id="dm-idle">
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:#555;margin-bottom:8px;">// quick set</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+          <button class="dm-quick" data-mins="30">+30 MIN</button>
           <button class="dm-quick" data-mins="60">+1 HR</button>
           <button class="dm-quick" data-mins="120">+2 HRS</button>
           <button class="dm-quick" data-mins="240">+4 HRS</button>
           <button class="dm-quick" data-mins="480">+8 HRS</button>
-          <button class="dm-quick" data-midnight="1">MIDNIGHT</button>
+          <button class="dm-quick" data-mins="720">+12 HRS</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+          <button class="dm-quick" data-mins="1440">+24 HRS</button>
+          <button class="dm-quick" data-mins="2880">+48 HRS</button>
+          <button class="dm-quick" data-mins="4320">+72 HRS</button>
+          <button class="dm-quick" data-mins="10080">+1 WEEK</button>
+          <button class="dm-quick" data-mins="20160">+2 WEEKS</button>
+          <button class="dm-quick" data-mins="43200">+1 MONTH</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">
+          <button class="dm-quick" data-midnight="1">TONIGHT MIDNIGHT</button>
+          <button class="dm-quick" data-end-of-week="1">END OF WEEK</button>
         </div>
 
         <div class="field" style="margin-bottom:12px;">
@@ -476,13 +490,26 @@ export function dashboardPage() {
         </div>
         <div class="field" style="margin-bottom:12px;">
           <label>Location (optional)</label>
-          <input type="text" id="dm-location" placeholder="e.g. Newtown Police Station" />
+          <input type="text" id="dm-location" placeholder="e.g. Newtown Police Station, hiking Mt Kosciuszko" />
+        </div>
+        <div class="field" style="margin-bottom:12px;">
+          <label>Message for contacts (optional)</label>
+          <input type="text" id="dm-message" placeholder='e.g. "I was at the protest on George St"' />
         </div>
         <div class="field" style="margin-bottom:16px;">
-          <label>Message for contacts (optional)</label>
-          <input type="text" id="dm-message" placeholder='e.g. "I was at the blockade on King St"' />
+          <label>Remind me before it fires</label>
+          <select id="dm-remind" style="width:100%;background:var(--dark);border:1px solid var(--border);color:var(--white);padding:12px 14px;font-family:'Roboto Mono',monospace;font-size:0.85rem;outline:none;">
+            <option value="auto">Auto (recommended)</option>
+            <option value="30">30 minutes before</option>
+            <option value="60">1 hour before</option>
+            <option value="120">2 hours before</option>
+            <option value="360">6 hours before</option>
+            <option value="720">12 hours before</option>
+            <option value="1440">24 hours before</option>
+            <option value="4320">3 days before</option>
+          </select>
         </div>
-        <button class="btn" id="dm-set-btn">SET DEADMAN SWITCH →</button>
+        <button class="btn" id="dm-set-btn">ARM DEADMAN SWITCH →</button>
         <div class="msg" id="dm-msg"></div>
       </div>
 
@@ -687,9 +714,13 @@ s0.parentNode.insertBefore(s1,s0);
       btn.classList.add('selected');
       let t;
       if (btn.dataset.midnight) {
-        t = new Date();
-        t.setHours(23, 59, 0, 0);
+        t = new Date(); t.setHours(23, 59, 0, 0);
         if (t <= new Date()) t.setDate(t.getDate() + 1);
+      } else if (btn.dataset.endOfWeek) {
+        t = new Date();
+        const daysUntilSun = (7 - t.getDay()) % 7 || 7;
+        t.setDate(t.getDate() + daysUntilSun);
+        t.setHours(23, 59, 0, 0);
       } else {
         t = new Date(Date.now() + parseInt(btn.dataset.mins) * 60 * 1000);
       }
@@ -711,6 +742,9 @@ s0.parentNode.insertBefore(s1,s0);
       msg.textContent = 'Session expired. Sign in to set a deadman switch.'; msg.className = 'msg err'; return;
     }
 
+    const remindVal = document.getElementById('dm-remind').value;
+    const remind_before_minutes = remindVal === 'auto' ? null : parseInt(remindVal);
+
     const btn = document.getElementById('dm-set-btn');
     btn.textContent = 'ARMING...'; btn.disabled = true;
 
@@ -722,6 +756,7 @@ s0.parentNode.insertBefore(s1,s0);
           fires_at: firesAt.toISOString(),
           location: document.getElementById('dm-location').value.trim() || null,
           message: document.getElementById('dm-message').value.trim() || null,
+          remind_before_minutes,
         }),
       });
       const data = await res.json();
@@ -737,7 +772,7 @@ s0.parentNode.insertBefore(s1,s0);
     } catch {
       msg.textContent = 'Network error.'; msg.className = 'msg err';
     } finally {
-      btn.textContent = 'SET DEADMAN SWITCH →'; btn.disabled = false;
+      btn.textContent = 'ARM DEADMAN SWITCH →'; btn.disabled = false;
     }
   });
 
