@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT NOT NULL UNIQUE,
   phone TEXT NOT NULL UNIQUE,  -- mobile number, used as caller identifier
   dob_hash TEXT NOT NULL,      -- SHA-256 of DDMMYY — second factor
+  password_hash TEXT,             -- PBKDF2-SHA256 for web login
   active INTEGER DEFAULT 1,
   plan TEXT DEFAULT 'free',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP

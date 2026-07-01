@@ -9,10 +9,13 @@ export async function handleAPI(request, env, corsHeaders) {
 
   // POST /api/register
   if (path === '/api/register' && request.method === 'POST') {
-    const { name, email, phone, dob, contacts } = await request.json();
+    const { name, email, phone, dob, password, contacts } = await request.json();
 
-    if (!name || !email || !phone || !dob)
-      return json({ error: 'Name, email, mobile and date of birth are required.' }, 400);
+    if (!name || !email || !phone || !dob || !password)
+      return json({ error: 'All fields are required.' }, 400);
+
+    if (password.length < 8)
+      return json({ error: 'Password must be at least 8 characters.' }, 400);
 
     const cleanPhone = phone.replace(/\s+/g, '').replace(/^0/, '+61');
     if (!/^\+?[\d]{10,12}$/.test(cleanPhone.replace('+', '')))
@@ -27,6 +30,7 @@ export async function handleAPI(request, env, corsHeaders) {
       return json({ error: 'Maximum 10 contacts.' }, 400);
 
     const dobHash = await hashValue(dob);
+    const passwordHash = await hashPassword(password);
 
     try {
       const emailClean = email.toLowerCase().trim();
@@ -36,8 +40,8 @@ export async function handleAPI(request, env, corsHeaders) {
       const plan = alreadyPaid ? 'lifetime' : 'free';
 
       const result = await env.DB.prepare(
-        'INSERT INTO users (name, email, phone, dob_hash, plan) VALUES (?, ?, ?, ?, ?)'
-      ).bind(name, emailClean, cleanPhone, dobHash, plan).run();
+        'INSERT INTO users (name, email, phone, dob_hash, password_hash, plan) VALUES (?, ?, ?, ?, ?, ?)'
+      ).bind(name, emailClean, cleanPhone, dobHash, passwordHash, plan).run();
 
       const userId = result.meta.last_row_id;
 
@@ -50,7 +54,9 @@ export async function handleAPI(request, env, corsHeaders) {
         }
       }
 
-      return json({ ok: true, phone: cleanPhone });
+      const secret = env.TOKEN_SECRET || 'busted_1800_token_secret';
+      const token = await createToken(userId, secret);
+      return json({ ok: true, phone: cleanPhone, token });
     } catch (e) {
       if (e.message?.includes('UNIQUE')) {
         if (e.message.includes('email')) return json({ error: 'That email is already registered.' }, 409);
@@ -354,13 +360,13 @@ export async function handleAPI(request, env, corsHeaders) {
 
   // POST /api/login
   if (path === '/api/login' && request.method === 'POST') {
-    const { phone, dob } = await request.json();
-    if (!phone || !dob) return json({ error: 'Mobile and date of birth required.' }, 400);
-    const mobile = phone.replace(/\s+/g, '').replace(/^0/, '+61');
-    const user = await env.DB.prepare('SELECT * FROM users WHERE phone = ? AND active = 1').bind(mobile).first();
-    if (!user) return json({ error: 'No account found for that mobile number.' }, 404);
-    const dobValid = await verifyHash(dob, user.dob_hash);
-    if (!dobValid) return json({ error: 'Date of birth did not match.' }, 401);
+    const { email, password } = await request.json();
+    if (!email || !password) return json({ error: 'Email and password required.' }, 400);
+    const user = await env.DB.prepare('SELECT * FROM users WHERE email = ? AND active = 1').bind(email.toLowerCase().trim()).first();
+    // Generic error to avoid account enumeration
+    if (!user || !user.password_hash) return json({ error: 'Email or password incorrect.' }, 401);
+    const valid = await verifyPassword(password, user.password_hash);
+    if (!valid) return json({ error: 'Email or password incorrect.' }, 401);
     const secret = env.TOKEN_SECRET || 'busted_1800_token_secret';
     const token = await createToken(user.id, secret);
     return json({ ok: true, token, user: { name: user.name, phone: user.phone, email: user.email } });
@@ -489,6 +495,24 @@ async function verifyStripeSignature(body, sigHeader, secret) {
   const signed = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${t}.${body}`));
   const computed = Array.from(new Uint8Array(signed)).map(b => b.toString(16).padStart(2, '0')).join('');
   return computed === v1;
+}
+
+async function hashPassword(password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: 100000 }, key, 256);
+  const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
+  const hashHex = Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return `${saltHex}:${hashHex}`;
+}
+
+async function verifyPassword(password, stored) {
+  const [saltHex, hashHex] = stored.split(':');
+  const salt = new Uint8Array(saltHex.match(/.{2}/g).map(b => parseInt(b, 16)));
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: 100000 }, key, 256);
+  const computed = Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return computed === hashHex;
 }
 
 async function hashValue(value) {

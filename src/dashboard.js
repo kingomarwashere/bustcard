@@ -369,17 +369,24 @@ export function dashboardPage() {
         <div class="field">
           <label>Email</label>
           <input type="email" id="reg-email" placeholder="you@example.com" autocomplete="email" />
-          <div class="field-hint">For account recovery only. We don't spam.</div>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="reg-password" placeholder="Min. 8 characters" autocomplete="new-password" />
+        </div>
+        <div class="field">
+          <label>Confirm password</label>
+          <input type="password" id="reg-password2" placeholder="Repeat password" autocomplete="new-password" />
         </div>
         <div class="field">
           <label>Mobile number</label>
           <input type="tel" id="reg-phone" placeholder="04xx xxx xxx" autocomplete="tel" />
-          <div class="field-hint">This is how you identify yourself when you call. Use the number you know by heart.</div>
+          <div class="field-hint">How you identify yourself when you call in. Use the number you know by heart.</div>
         </div>
         <div class="field">
           <label>Date of birth — DDMMYY</label>
           <input type="text" id="reg-dob" placeholder="150690" maxlength="6" inputmode="numeric" />
-          <div class="field-hint">6 digits. Day, month, last 2 digits of year. E.g. 15 June 1990 → 150690. Second factor when you call in.</div>
+          <div class="field-hint">6 digits. Day month year. E.g. 15 June 1990 → 150690. Used for phone verification only.</div>
         </div>
       </div>
       <button class="btn" id="next-btn">CONTINUE → ADD CONTACTS</button>
@@ -569,10 +576,14 @@ s0.parentNode.insertBefore(s1,s0);
     const msg = document.getElementById('step1-msg');
     const name = document.getElementById('reg-name').value.trim();
     const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const password2 = document.getElementById('reg-password2').value;
     const phone = document.getElementById('reg-phone').value.trim();
     const dob = document.getElementById('reg-dob').value.trim();
     if (!name) { msg.textContent = 'Enter your name.'; msg.className = 'msg err'; return; }
     if (!email || !email.includes('@')) { msg.textContent = 'Enter a valid email.'; msg.className = 'msg err'; return; }
+    if (password.length < 8) { msg.textContent = 'Password must be at least 8 characters.'; msg.className = 'msg err'; return; }
+    if (password !== password2) { msg.textContent = 'Passwords do not match.'; msg.className = 'msg err'; return; }
     if (!phone) { msg.textContent = 'Enter your mobile number.'; msg.className = 'msg err'; return; }
     if (!/^\\d{6}$/.test(dob)) { msg.textContent = 'Date of birth must be 6 digits — DDMMYY. E.g. 150690.'; msg.className = 'msg err'; return; }
     msg.textContent = '';
@@ -613,6 +624,7 @@ s0.parentNode.insertBefore(s1,s0);
         body: JSON.stringify({
           name: document.getElementById('reg-name').value.trim(),
           email: document.getElementById('reg-email').value.trim(),
+          password: document.getElementById('reg-password').value,
           phone: document.getElementById('reg-phone').value.trim(),
           dob: document.getElementById('reg-dob').value.trim(),
           contacts,
@@ -620,9 +632,9 @@ s0.parentNode.insertBefore(s1,s0);
       });
       const data = await res.json();
       if (res.ok) {
-        // Store for deadman use
+        // Store token for deadman use
+        if (data.token) localStorage.setItem('busted_token', data.token);
         window._userPhone = document.getElementById('reg-phone').value.trim();
-        window._userDob = document.getElementById('reg-dob').value.trim();
 
         // Show success
         document.getElementById('form-section').style.display = 'none';
@@ -694,20 +706,19 @@ s0.parentNode.insertBefore(s1,s0);
     const firesAt = new Date(timeVal);
     if (firesAt <= new Date()) { msg.textContent = 'Fire time must be in the future.'; msg.className = 'msg err'; return; }
 
-    if (!window._userPhone || !window._userDob) {
-      msg.textContent = 'Session expired. Refresh and register again.'; msg.className = 'msg err'; return;
+    const _token = localStorage.getItem('busted_token');
+    if (!_token) {
+      msg.textContent = 'Session expired. Sign in to set a deadman switch.'; msg.className = 'msg err'; return;
     }
 
     const btn = document.getElementById('dm-set-btn');
     btn.textContent = 'ARMING...'; btn.disabled = true;
 
     try {
-      const res = await fetch('/api/deadman/set', {
+      const res = await fetch('/api/account/deadman/set', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _token },
         body: JSON.stringify({
-          phone: window._userPhone,
-          dob: window._userDob,
           fires_at: firesAt.toISOString(),
           location: document.getElementById('dm-location').value.trim() || null,
           message: document.getElementById('dm-message').value.trim() || null,
@@ -739,10 +750,10 @@ s0.parentNode.insertBefore(s1,s0);
     btn.textContent = 'CANCELLING...'; btn.disabled = true;
 
     try {
-      const res = await fetch('/api/deadman/cancel', {
+      const _token = localStorage.getItem('busted_token');
+      const res = await fetch('/api/account/deadman/cancel', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: _cancelToken }),
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (_token || '') },
       });
       const data = await res.json();
       if (res.ok) {

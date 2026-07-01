@@ -52,13 +52,12 @@ export function loginPage() {
   <h1>Sign in.</h1>
 
   <div class="field">
-    <label>Mobile number</label>
-    <input type="tel" id="phone" placeholder="04xx xxx xxx" autocomplete="tel" />
+    <label>Email</label>
+    <input type="email" id="email" placeholder="you@example.com" autocomplete="email" />
   </div>
   <div class="field">
-    <label>Date of birth — DDMMYY</label>
-    <input type="text" id="dob" placeholder="150690" maxlength="6" inputmode="numeric" />
-    <div class="field-hint">Same 6 digits you used when signing up.</div>
+    <label>Password</label>
+    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
   </div>
   <button class="btn" id="signin-btn">SIGN IN →</button>
   <div class="msg" id="msg"></div>
@@ -68,23 +67,23 @@ export function loginPage() {
 </div>
 
 <script>
-  document.getElementById('dob').addEventListener('keydown', e => {
+  document.getElementById('password').addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('signin-btn').click();
   });
 
   document.getElementById('signin-btn').addEventListener('click', async () => {
     const msg = document.getElementById('msg');
     const btn = document.getElementById('signin-btn');
-    const phone = document.getElementById('phone').value.trim();
-    const dob = document.getElementById('dob').value.trim();
-    if (!phone) { msg.textContent = 'Enter your mobile number.'; return; }
-    if (!/^\\d{6}$/.test(dob)) { msg.textContent = 'Date of birth must be 6 digits — DDMMYY.'; return; }
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    if (!email || !email.includes('@')) { msg.textContent = 'Enter your email.'; return; }
+    if (!password) { msg.textContent = 'Enter your password.'; return; }
     btn.textContent = 'SIGNING IN...'; btn.disabled = true; msg.textContent = '';
     try {
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, dob }),
+        body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
       if (res.ok) {
